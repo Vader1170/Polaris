@@ -1,0 +1,6 @@
+{
+  "name": "Polaris",
+  "description": "Find your true north in research. Polaris helps ambitious students navigate the unfamiliar terrain of real research — from a first spark of curiosity to a publishable idea.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
