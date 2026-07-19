@@ -1,28 +1,18 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { createServer as createViteServer } from "vite";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
-
 app.use(express.json());
 
 // ── Usage stats (flat-file counter) ─────────────────────────────────────
-// NOTE: this uses a plain JSON file on the local filesystem via Node's fs
-// module. That works fine in local dev, but Vercel's serverless deployment
-// model gives each function invocation an ephemeral, read-only filesystem
-// (aside from /tmp, which does not persist between invocations either).
-// Once this is deployed to Vercel, writes here will silently stop
-// persisting — the counter will appear to work per-request but reset/lose
-// data constantly, and GET /api/stats will not reflect real usage.
-// Before relying on these numbers in production, swap this for something
-// that persists across serverless invocations (e.g. Vercel KV, a Firestore
-// counter document, or a small external counter API).
-const USAGE_STATS_PATH = path.resolve(process.cwd(), "data", "usage-stats.json");
+// NOTE: on Vercel, the filesystem is ephemeral per invocation. This will
+// NOT persist counts across requests in production. Swap for Vercel KV,
+// a Firestore counter doc, or similar before trusting these numbers.
+const USAGE_STATS_PATH = path.resolve("/tmp", "usage-stats.json");
 
 interface UsageStats {
   totalGenerations: number;
@@ -43,22 +33,15 @@ function incrementUsageStats(type: string): void {
     const stats = readUsageStats();
     stats.totalGenerations += 1;
     stats.byType[type] = (stats.byType[type] || 0) + 1;
-    fs.mkdirSync(path.dirname(USAGE_STATS_PATH), { recursive: true });
     fs.writeFileSync(USAGE_STATS_PATH, JSON.stringify(stats, null, 2), "utf-8");
   } catch (err) {
-    // Never let stats tracking break the actual request.
     console.error("Failed to update usage stats:", err);
   }
 }
 
-// ── OpenRouter configuration ──────────────────────────────────────────────
-// To switch models later, change only this constant.
 const OPENROUTER_MODEL = "openai/gpt-oss-20b:free";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-// JSON schema description used to instruct the model (kept in sync with the
-// frontend's expected shape). This replaces Gemini's responseSchema, since
-// OpenRouter's Chat Completions API doesn't support it natively.
 const roadmapSchemaDescription = `{
   "researchVision": string,
   "recommendedField": string,
@@ -74,29 +57,18 @@ const roadmapSchemaDescription = `{
   "nextThreeActions": string[]
 }`;
 
-// Extracts a JSON object from a model response, tolerating markdown code
-// fences or stray text around the JSON payload.
 function extractJson(text: string): any {
   let candidate = text.trim();
-
   const fenceMatch = candidate.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenceMatch) {
-    candidate = fenceMatch[1].trim();
-  }
-
-  // Narrow to the outermost { ... } block if there's any surrounding text.
+  if (fenceMatch) candidate = fenceMatch[1].trim();
   const start = candidate.indexOf("{");
   const end = candidate.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
     candidate = candidate.slice(start, end + 1);
   }
-
   try {
     return JSON.parse(candidate);
   } catch {
-    // The model produced near-valid JSON with a bracket mistake (e.g.
-    // closing an array with `}` instead of `]`, or truncated output).
-    // Repair bracket matching and retry once before giving up.
     const repaired = repairJsonBrackets(candidate);
     try {
       return JSON.parse(repaired);
@@ -106,80 +78,45 @@ function extractJson(text: string): any {
   }
 }
 
-// Walks a JSON-like string and fixes mismatched or missing closing
-// brackets/braces (a common failure mode for smaller models generating
-// long structured output, e.g. closing an array with `}` instead of `]`).
 function repairJsonBrackets(text: string): string {
   const stack: string[] = [];
   let result = "";
   let inString = false;
   let escaped = false;
-
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
-
     if (inString) {
       result += ch;
-      if (escaped) {
-        escaped = false;
-      } else if (ch === "\\") {
-        escaped = true;
-      } else if (ch === '"') {
-        inString = false;
-      }
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
       continue;
     }
-
-    if (ch === '"') {
-      inString = true;
-      result += ch;
-      continue;
-    }
-
-    if (ch === "{" || ch === "[") {
-      stack.push(ch === "{" ? "}" : "]");
-      result += ch;
-      continue;
-    }
-
+    if (ch === '"') { inString = true; result += ch; continue; }
+    if (ch === "{" || ch === "[") { stack.push(ch === "{" ? "}" : "]"); result += ch; continue; }
     if (ch === "}" || ch === "]") {
-      if (stack.length > 0) {
-        // Always emit what the stack expects next, correcting mismatches.
-        result += stack.pop();
-      }
-      // Unmatched closer with nothing open: drop it.
+      if (stack.length > 0) result += stack.pop();
       continue;
     }
-
     result += ch;
   }
-
-  // Append any closers still owed at the end (handles truncation).
-  while (stack.length > 0) {
-    result += stack.pop();
-  }
-
+  while (stack.length > 0) result += stack.pop();
   return result;
 }
 
-// API proxy endpoint to handle roadmap generation
 app.post("/api/generate-roadmap", async (req, res) => {
   try {
     const { answers, model = OPENROUTER_MODEL } = req.body;
-
     if (!answers || typeof answers !== "object") {
       return res.status(400).json({ error: "Answers object is required." });
     }
-
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      throw new Error("OPENROUTER_API_KEY environment variable is missing. Please add it to your .env file.");
+      throw new Error("OPENROUTER_API_KEY environment variable is missing.");
     }
-
     const formattedAnswers = Object.entries(answers)
       .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(", ") : val}`)
       .join("\n");
-
     const prompt = `The student's profile is compiled below:
 ${formattedAnswers}
 
@@ -190,7 +127,6 @@ Make sure the recommendedField, possibleResearchQuestions, and backgroundReading
 
 Respond with ONLY a single valid JSON object matching this exact structure, and nothing else (no markdown fences, no commentary):
 ${roadmapSchemaDescription}`;
-
     const systemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) while maintaining the highest academic standards.
 
 When a student shares their interests and constraints, you must:
@@ -223,22 +159,17 @@ When a student shares their interests and constraints, you must:
       });
     } catch (networkErr: any) {
       console.error("OpenRouter network error:", networkErr);
-      return res.status(500).json({
-        error: "Failed to reach OpenRouter API. Please check your network connection and try again.",
-      });
+      return res.status(500).json({ error: "Failed to reach OpenRouter API. Please check your network connection and try again." });
     }
 
     if (!openRouterResponse.ok) {
       const errorBody = await openRouterResponse.text().catch(() => "");
       console.error(`OpenRouter API error (${openRouterResponse.status}):`, errorBody);
-      return res.status(500).json({
-        error: `OpenRouter API request failed with status ${openRouterResponse.status}.`,
-      });
+      return res.status(500).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
     }
 
     const data = await openRouterResponse.json();
     const messageContent = data?.choices?.[0]?.message?.content;
-
     if (!messageContent || typeof messageContent !== "string") {
       console.error("OpenRouter returned an unexpected payload:", JSON.stringify(data));
       throw new Error("OpenRouter API returned an empty or malformed response.");
@@ -253,93 +184,15 @@ When a student shares their interests and constraints, you must:
     }
 
     incrementUsageStats("research");
-
     res.json(parsedData);
   } catch (error: any) {
     console.error("Roadmap generation error:", error);
-    res.status(500).json({
-      error: error.message || "Failed to generate roadmap from AI provider."
-    });
+    res.status(500).json({ error: error.message || "Failed to generate roadmap from AI provider." });
   }
 });
 
-// Returns current usage counters. NOTE: unauthenticated — fine for
-// checking your own numbers during a private beta, but remove or protect
-// this (e.g. a shared-secret query param or basic auth) before a genuinely
-// public launch, since anyone who finds the URL can currently read it.
 app.get("/api/stats", (req, res) => {
   res.json(readUsageStats());
 });
 
-// Start server and handle Vite middleware
-async function startServer() {
-  let vite: any = null;
-  if (process.env.NODE_ENV !== "production") {
-    vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "custom",
-    });
-  }
-
-  const servePage = (htmlFileName: string) => async (req: any, res: any, next: any) => {
-    try {
-      const filePath = path.resolve(process.cwd(), htmlFileName);
-      if (process.env.NODE_ENV !== "production") {
-        if (fs.existsSync(filePath)) {
-          const rawHtml = fs.readFileSync(filePath, "utf-8");
-          const html = await vite.transformIndexHtml(req.originalUrl, rawHtml);
-          res.status(200).set({ "Content-Type": "text/html" }).end(html);
-        } else {
-          res.status(404).send(`File not found: ${htmlFileName}`);
-        }
-      } else {
-        const distPath = path.join(process.cwd(), "dist");
-        const distPagePath = path.join(distPath, htmlFileName);
-        if (fs.existsSync(distPagePath)) {
-          res.sendFile(distPagePath);
-        } else {
-          res.status(404).sendFile(path.join(distPath, "index.html"));
-        }
-      }
-    } catch (err) {
-      next(err);
-    }
-  };
-
-  // Modern Clean Routes
-  app.get("/", servePage("index.html"));
-  app.get("/mission", servePage("mission.html"));
-  app.get("/principles", servePage("principles.html"));
-  app.get("/how-it-works", servePage("how-it-works.html"));
-  app.get("/story", servePage("story.html"));
-  app.get("/navigator", servePage("navigator.html"));
-
-  // Original Direct extension matches
-  app.get("/index.html", servePage("index.html"));
-  app.get("/mission.html", servePage("mission.html"));
-  app.get("/prinnciples.html", servePage("principles.html"));
-  app.get("/how-it-works.html", servePage("how-it-works.html"));
-  app.get("/story.html", servePage("story.html"));
-  app.get("/navigator.html", servePage("navigator.html"));
-
-  if (process.env.NODE_ENV !== "production") {
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    // Fallback for production clean URLs/spa routing
-    app.get("*all", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
-
-  app.listen(PORT, "0.0.0.0", () => {
-    if (process.env.NODE_ENV === "production") {
-      console.log(`Server running on port ${PORT}`);
-    } else {
-      console.log(`Server running on http://localhost:${PORT}`);
-    }
-  });
-}
-
-startServer();
+export default app;
