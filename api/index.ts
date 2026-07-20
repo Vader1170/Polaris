@@ -33,7 +33,7 @@ const db = admin.firestore();
 async function verifyFirebaseToken(req: any, res: any, next: any) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    req.user = null; // anonymous
+    req.user = null;
     return next();
   }
   const token = authHeader.split(" ")[1];
@@ -44,19 +44,101 @@ async function verifyFirebaseToken(req: any, res: any, next: any) {
   } catch (err) {
     console.error("Token verification failed:", err);
     req.user = null;
-    next(); // still proceed, but treat as anonymous
+    next();
   }
 }
 
 // ── Apply to all /api/generate-* endpoints ──────────────────────
 app.use("/api/generate-", verifyFirebaseToken);
 
-// ── Shared helpers (extractJson, repairJsonBrackets) ────────────
-function extractJson(text: string): any { /* unchanged */ }
-function repairJsonBrackets(text: string): string { /* unchanged */ }
+// ── Shared helpers ──────────────────────────────────────────────
+function extractJson(text: string): any {
+  let candidate = text.trim();
+  // Strip markdown code fences if present
+  const fenceMatch = candidate.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) candidate = fenceMatch[1].trim();
 
-// ── Base system instruction (unchanged) ─────────────────────────
-const baseSystemInstruction = `...`; // (copy from your file)
+  // Find the first { and last } – assume it's JSON
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    candidate = candidate.slice(start, end + 1);
+  }
+
+  try {
+    return JSON.parse(candidate);
+  } catch (e) {
+    // If first parse fails, try to repair brackets
+    const repaired = repairJsonBrackets(candidate);
+    try {
+      return JSON.parse(repaired);
+    } catch (e2) {
+      throw new Error("Could not parse JSON from AI response.");
+    }
+  }
+}
+
+function repairJsonBrackets(text: string): string {
+  // Attempt to balance unterminated { or [
+  // This is a simple pass – it only adds missing closing brackets in order,
+  // but does not attempt to fix structural errors.
+  const stack: string[] = [];
+  let result = "";
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      result += ch;
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      result += ch;
+      continue;
+    }
+    if (ch === "{" || ch === "[") {
+      stack.push(ch === "{" ? "}" : "]");
+      result += ch;
+      continue;
+    }
+    if (ch === "}" || ch === "]") {
+      if (stack.length > 0 && stack[stack.length - 1] === ch) {
+        stack.pop();
+      } else {
+        // Mismatched or extra – discard it (or we could treat as literal)
+        continue;
+      }
+      result += ch;
+      continue;
+    }
+    result += ch;
+  }
+  // Close any remaining open brackets
+  while (stack.length > 0) {
+    result += stack.pop();
+  }
+  return result;
+}
+
+// ── OpenRouter config ──────────────────────────────────────────────
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-oss-20b:free";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+// ── Base system instruction ──────────────────────────────────────
+const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) while maintaining the highest academic standards.
+
+When a student shares their interests and constraints, you must:
+1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do not write as if they know linear algebra, PDEs, or graduate-level notation.
+2. Every time you introduce a technical term, acronym, or piece of jargon (e.g. "PINN," "Navier-Stokes," "surrogate model"), immediately follow it with a short plain-English gloss in parentheses or the same sentence, written so a bright student at their stated level understands it without looking anything up. Never stack multiple unexplained jargon terms in a row.
+3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools (e.g., Python, LaTeX/Overleaf, Jupyter, R, Pandas, PyTorch, QGIS) — but only real, correctly-attributed works you are confident exist. If you are not certain of an exact title or author, recommend a well-known standard reference in the field instead of inventing one.
+4. Write only in English. Never insert stray characters, words, or script from other languages/alphabets anywhere in the output.
+5. Do not formulate questions or experiments that are unrealistic (e.g., do not suggest wet-lab CRISPR editing or supercomputer modeling if they only have a standard laptop and no school lab).
+6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actually follow given point 1 and 2 above.
+7. You must respond with ONLY a single valid JSON object matching the structure given by the user. Do not wrap it in markdown code fences. Do not include any text before or after the JSON.`;
 
 // ── Firestore stats functions ────────────────────────────────────
 async function incrementUsageStats(type: string) {
@@ -75,7 +157,7 @@ async function incrementUsageStats(type: string) {
   }
 }
 
-// ── Generic endpoint creator (with saving to Firestore) ──────────
+// ── Generic endpoint creator ──────────────────────────────────────
 function createGenerateEndpoint(
   route: string,
   schemaDescription: string,
@@ -149,13 +231,10 @@ function createGenerateEndpoint(
           await db.collection("users").doc(uid).collection("roadmaps").add(roadmapData);
         } catch (err) {
           console.error("Failed to save roadmap to Firestore:", err);
-          // We still return the roadmap even if saving fails
         }
       }
 
-      // ── Update Firestore stats ─────────────────────────────
       await incrementUsageStats(statsKey);
-
       res.json(parsedData);
     } catch (error: any) {
       console.error(`Error in ${route}:`, error);
@@ -164,9 +243,225 @@ function createGenerateEndpoint(
   });
 }
 
-// ── Define all endpoints (your existing ones) ────────────────────
-// ... (all the schemas and createGenerateEndpoint calls from your file)
-// They remain unchanged.
+// ── Define all endpoints ────────────────────────────────────────
+
+// Research
+const researchSchema = `{
+  "researchVision": string,
+  "recommendedField": string,
+  "possibleResearchQuestions": string[],
+  "backgroundReading": [{ "title": string, "author": string, "description": string }],
+  "skillsToLearn": string[],
+  "weeklyRoadmap": [{ "weekNumber": string, "objective": string, "tasks": string[] }],
+  "softwareTools": [{ "name": string, "purpose": string }],
+  "experimentIdeas": [{ "title": string, "description": string }],
+  "publicationChecklist": string[],
+  "competitions": [{ "name": string, "suitability": string }],
+  "commonMistakes": string[],
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint(
+  "/api/generate-roadmap",
+  researchSchema,
+  (answers) => {
+    const formatted = Object.entries(answers)
+      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+      .join("\n");
+    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tailored scientific roadmap for them.`;
+  },
+  "research"
+);
+
+// Science Fair
+const scienceFairSchema = `{
+  "projectTitle": string,
+  "hypothesisStatement": string,
+  "independentVariable": string,
+  "dependentVariable": string,
+  "controlledVariables": string[],
+  "experimentalDesign": [{ "title": string, "description": string }],
+  "materialsAndEquipment": [{ "name": string, "purpose": string, "whereToGet": string }],
+  "dataCollectionPlan": string,
+  "validationAndControls": string[],
+  "displayBoardOutline": [{ "title": string, "description": string }],
+  "timelineToFairDate": [{ "milestone": string, "targetDate": string, "tasks": string[] }],
+  "judgingPrepChecklist": string[],
+  "commonPitfalls": string[],
+  "suitableFairs": [{ "name": string, "suitability": string }]
+}`;
+createGenerateEndpoint(
+  "/api/generate-sciencefair",
+  scienceFairSchema,
+  (answers) => {
+    const formatted = Object.entries(answers)
+      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+      .join("\n");
+    return `The student's science fair profile:\n${formatted}\n\nGenerate a structured plan for their project.`;
+  },
+  "sciencefair"
+);
+
+// Olympiad (stub – complete later)
+const olympiadSchema = `{
+  "targetOlympiad": string,
+  "currentLevelAssessment": string,
+  "syllabusBreakdown": [{ "topic": string, "priority": string, "whyItMatters": string }],
+  "resourceList": [{ "title": string, "author": string, "description": string }],
+  "weeklySchedule": [{ "weekNumber": string, "focus": string, "tasks": string[] }],
+  "practiceProblemSets": [{ "source": string, "description": string }],
+  "mockTestPlan": string,
+  "commonMistakes": string[],
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint("/api/generate-olympiad", olympiadSchema, (a) => "Olympiad preparation", "olympiad");
+
+// Portfolio
+const portfolioSchema = `{
+  "portfolioNarrative": string,
+  "strengthsIdentified": string[],
+  "gapsToAddress": string[],
+  "recommendedAdditions": [{ "title": string, "description": string, "effortLevel": string }],
+  "howToPresentExisting": [{ "item": string, "howToFrameIt": string }],
+  "essayAngleSuggestions": string[],
+  "timeline": [{ "weekOrMonthLabel": string, "tasks": string[] }],
+  "redFlagsToAvoid": string[],
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint("/api/generate-portfolio", portfolioSchema, (a) => "Portfolio plan", "portfolio");
+
+// Debate
+const debateSchema = `{
+  "resolutionAnalysis": string,
+  "caseFramework": [{ "contentionTitle": string, "claim": string, "warrant": string, "impact": string }],
+  "evidenceToFind": [{ "claimItSupports": string, "whatKindOfSourceToLookFor": string }],
+  "anticipatedOpposingArguments": [{ "argument": string, "howToRespond": string }],
+  "crossExaminationPrep": string[],
+  "deliveryTips": string[],
+  "prepTimeline": [{ "sessionLabel": string, "tasks": string[] }],
+  "commonMistakes": string[],
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint("/api/generate-debate", debateSchema, (a) => "Debate case", "debate");
+
+// Project Builder
+const projectSchema = `{
+  "projectSummary": string,
+  "coreFeatureList": [{ "feature": string, "priority": "must-have" | "nice-to-have" }],
+  "suggestedTechStack": [{ "layer": string, "tool": string, "why": string }],
+  "architectureOverview": string,
+  "milestones": [{ "milestoneNumber": string, "title": string, "tasks": string[], "estimatedWeeks": string }],
+  "databaseSchemaSketch": [{ "table": string, "keyFields": string }],
+  "deploymentPlan": string,
+  "testingChecklist": string[],
+  "commonMistakes": string[],
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint("/api/generate-project", projectSchema, (a) => "Project plan", "project");
+
+// Learning Planner
+const learningSchema = `{
+  "learningGoalSummary": string,
+  "recommendedResource": string,
+  "topicBreakdown": [{ "topic": string, "whyItMatters": string, "prerequisiteOf": string[] }],
+  "weeklySchedule": [{ "weekNumber": string, "topics": string[], "practiceRecommendation": string }],
+  "selfCheckMilestones": string[],
+  "commonStumblingBlocks": string[],
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint("/api/generate-learning", learningSchema, (a) => "Learning plan", "learning");
+
+// Paper Reviewer
+const paperSchema = `{
+  "overallAssessment": string,
+  "strengths": string[],
+  "methodologyIssues": [{ "issue": string, "whyItMatters": string, "suggestedFix": string }],
+  "clarityIssues": [{ "location": string, "issue": string, "suggestedFix": string }],
+  "statisticalConcerns": string[],
+  "citationConcerns": string[],
+  "revisionPriorityOrder": string[],
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint("/api/generate-paper", paperSchema, (a) => "Paper review", "paper");
+
+// Career Explorer
+const careerSchema = `{
+  "fieldOverview": string,
+  "specializationOptions": [{ "name": string, "description": string, "whatItInvolves": string }],
+  "howToFindLabs": string[],
+  "internshipProgramTypes": [{ "type": string, "description": string, "typicalTimeline": string }],
+  "gradSchoolPathOverview": string,
+  "nextThreeActions": string[]
+}`;
+createGenerateEndpoint("/api/generate-career", careerSchema, (a) => "Career plan", "career");
+
+// ── Journal Summary (separate, no Firestore save) ──────────────
+app.post("/api/summarize-journal", async (req, res) => {
+  try {
+    const { entries, model = OPENROUTER_MODEL } = req.body;
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
+      return res.status(400).json({ error: "Entries array is required and must not be empty." });
+    }
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) throw new Error("OPENROUTER_API_KEY missing.");
+
+    const entriesText = entries.map((e, i) =>
+      `Entry ${i+1}: Date: ${e.date}, Work: ${e.work}, Blockers: ${e.blockers || 'None'}, Next: ${e.next || 'None'}`
+    ).join("\n");
+
+    const userPrompt = `Here are the student's recent journal entries:\n${entriesText}\n\nSummarise the period, assess momentum, identify recurring blockers, and suggest next steps. Respond with JSON matching the schema.`;
+    const systemInstruction = baseSystemInstruction + `\n\nRespond with a JSON object matching this schema:
+    {
+      "periodSummary": string,
+      "momentum": string,
+      "recurringBlockers": string[],
+      "suggestedNextSteps": string[]
+    }`;
+
+    const openRouterResponse = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.6,
+        max_tokens: 4000,
+        reasoning: { effort: "low" },
+      }),
+    });
+
+    if (!openRouterResponse.ok) {
+      const errorBody = await openRouterResponse.text().catch(() => "");
+      console.error(`OpenRouter error (${openRouterResponse.status}):`, errorBody);
+      return res.status(500).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
+    }
+
+    const data = await openRouterResponse.json();
+    const messageContent = data?.choices?.[0]?.message?.content;
+    if (!messageContent || typeof messageContent !== "string") {
+      throw new Error("OpenRouter returned empty or malformed response.");
+    }
+
+    let parsedData;
+    try {
+      parsedData = extractJson(messageContent);
+    } catch (parseErr) {
+      console.error("Failed to parse journal summary JSON:", messageContent);
+      throw new Error("Failed to parse summary JSON.");
+    }
+
+    incrementUsageStats("journal");
+    res.json(parsedData);
+  } catch (error: any) {
+    console.error("Journal summary error:", error);
+    res.status(500).json({ error: error.message || "Failed to generate summary." });
+  }
+});
 
 // ── History endpoints ────────────────────────────────────────────
 app.get("/api/history", verifyFirebaseToken, async (req: any, res) => {
@@ -190,7 +485,6 @@ app.get("/api/history", verifyFirebaseToken, async (req: any, res) => {
         id: doc.id,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
         navigatorType: data.navigatorType || "unknown",
-        // we don't send the full roadmap here to keep response small
         summary: data.roadmap?.researchVision || data.roadmap?.projectTitle || "Untitled",
       });
     });
@@ -231,7 +525,7 @@ app.get("/api/history/:id", verifyFirebaseToken, async (req: any, res) => {
   }
 });
 
-// ── Stats endpoint (now reads from Firestore) ──────────────────
+// ── Stats endpoint ──────────────────────────────────────────────
 app.get("/api/stats", async (req, res) => {
   if (!db) {
     return res.json({ totalGenerations: 0, byType: {} });
@@ -251,8 +545,5 @@ app.get("/api/stats", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch stats." });
   }
 });
-
-// ── Original Research endpoint (kept as is) ─────────────────────
-// ... (the large app.post("/api/generate-roadmap", ...) from your file)
 
 export default app;
