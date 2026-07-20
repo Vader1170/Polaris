@@ -160,10 +160,10 @@ const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-oss-20b:fre
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // ── Base system instruction ──────────────────────────────────────
-const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-[...]
+const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) w[...]
 
 When a student shares their interests and constraints, you must:
-1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do not w[...]
+1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do w[...]
 2. Every time you introduce a technical term, acronym, or piece of jargon (e.g. "PINN," "Navier-Stokes," "surrogate model"), immediately follow it with a short plain-English gloss in parentheses or th[...]
 3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools (e.g., Python, LaTeX/Overleaf, Jupyter, R, Pandas, PyTorch, QGIS[...]
 4. Write only in English. Never insert stray characters, words, or script from other languages/alphabets anywhere in the output.
@@ -171,15 +171,15 @@ When a student shares their interests and constraints, you must:
 6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actua[...]
 7. You must respond with ONLY a single valid JSON object matching the structure given by the user. Do not wrap it in markdown code fences. Do not include any text before or after the JSON.`;
 
-// ── Firestore stats functions ───────────────────────────────────
+// ── Firestore stats functions ────────────────────────────────────
 async function incrementUsageStats(type: string) {
   if (!db) return;
   try {
     const statsRef = db.collection("stats").doc("global");
     await statsRef.set(
       {
-        totalGenerations: FieldValue.increment(1),
-        byType: { [type]: FieldValue.increment(1) },
+        totalGenerations: admin.firestore.FieldValue.increment(1),
+        byType: { [type]: admin.firestore.FieldValue.increment(1) },
       },
       { merge: true }
     );
@@ -256,7 +256,7 @@ function createGenerateEndpoint(
             roadmap: parsedData,
             answers: answers,
             navigatorType: statsKey,
-            createdAt: FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
           };
           await db.collection("users").doc(uid).collection("roadmaps").add(roadmapData);
         } catch (err) {
@@ -297,7 +297,7 @@ createGenerateEndpoint(
     const formatted = Object.entries(answers)
       .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
       .join("\n");
-    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tai[...]
+    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tailored[...]
   },
   "research"
 );
@@ -438,7 +438,7 @@ app.post("/api/summarize-journal", async (req, res) => {
       `Entry ${i+1}: Date: ${e.date}, Work: ${e.work}, Blockers: ${e.blockers || 'None'}, Next: ${e.next || 'None'}`
     ).join("\n");
 
-    const userPrompt = `Here are the student's recent journal entries:\n${entriesText}\n\nSummarise the period, assess momentum, identify recurring blockers, and suggest next steps. Respond with [...]
+    const userPrompt = `Here are the student's recent journal entries:\n${entriesText}\n\nSummarise the period, assess momentum, identify recurring blockers, and suggest next steps. Respond with JSON [...]
     const systemInstruction = baseSystemInstruction + `\n\nRespond with a JSON object matching this schema:
     {
       "periodSummary": string,
@@ -461,7 +461,6 @@ app.post("/api/summarize-journal", async (req, res) => {
         ],
         temperature: 0.6,
         max_tokens: 4000,
-        reasoning: { effort: "low" },
       }),
     });
 
