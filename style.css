@@ -161,7 +161,38 @@ select:focus-visible {
   border-color: var(--ink);
   transform: translateY(-1px);
 }
-
+/* =========================================================
+   SIGN-IN INCENTIVE BANNERS
+   ========================================================= */
+.signin-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: rgba(201, 169, 97, 0.08);
+  border: 1px solid rgba(201, 169, 97, 0.3);
+  border-radius: var(--radius-md);
+  padding: 18px 24px;
+  margin-bottom: 28px;
+}
+.signin-banner p {
+  margin: 0;
+  color: rgba(247, 245, 240, 0.85);
+  font-size: 0.95rem;
+}
+.signin-banner .btn {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy-950);
+}
+.signin-banner .btn:hover {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+}
 /* =========================================================
    HEADER
    ========================================================= */
