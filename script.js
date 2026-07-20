@@ -83,23 +83,23 @@ function updateAuthUI(user) {
 
   // ── Sign-in incentive banners ──────────────────────────────────────
 
-  function showSigninBanner(container, message) {
-    if (!container || currentUser) return;
-    if (container.querySelector(".signin-banner")) return;
+function showSigninBanner(container, message) {
+ if (!container || currentUser) return;
+ if (container.querySelector(".signin-banner")) return;
 
-    const banner = document.createElement("div");
-    banner.className = "signin-banner";
-    banner.innerHTML = `
-      <p>${message}</p>
-      <button type="button" class="btn banner-signin-btn">Sign in with Google</button>
-    `;
-    banner.querySelector(".banner-signin-btn").addEventListener("click", () => {
-      if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) return;
-      const provider = new window.GoogleAuthProvider();
-      window.signInWithPopup(window.firebaseAuth, provider);
-    });
-    container.insertBefore(banner, container.firstChild);
-  }
+ const banner = document.createElement("div");
+ banner.className = "signin-banner";
+ banner.innerHTML = `
+   <p>${message}</p>
+   <button type="button" class="btn banner-signin-btn">Sign in with Google</button>
+ `;
+ banner.querySelector(".banner-signin-btn").addEventListener("click", () => {
+   if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) return;
+   const provider = new window.GoogleAuthProvider();
+   window.signInWithPopup(window.firebaseAuth, provider);
+ });
+ container.insertBefore(banner, container.firstChild);
+}
 
   async function showHistory() {
     ...
