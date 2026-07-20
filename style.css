@@ -194,7 +194,7 @@ select:focus-visible {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 64px;
+  gap: 128px;
 }
 .site-nav {
   display: flex;
