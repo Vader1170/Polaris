@@ -417,38 +417,43 @@ function updateAuthUI(user) {
         errorScreen.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
-
-    async function callAiApi(endpoint, answers, attempt = 1, maxAttempts = 3) {
-      const timeoutMs = 45000;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const resp = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ answers }),
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        if (!resp.ok) {
-          let errMsg = `Server error: ${resp.status}`;
-          try { const d = await resp.json(); if (d.error) errMsg = d.error; } catch (_) {}
-          throw new Error(errMsg);
-        }
-        return await resp.json();
-      } catch (err) {
-        clearTimeout(timeoutId);
-        const isTimeout = err.name === "AbortError";
-        if (attempt < maxAttempts) {
-          const delay = Math.pow(2, attempt) * 1500;
-          if (loadingProgressText) loadingProgressText.textContent = `Attempt ${attempt} failed. Retrying in ${delay/1000}s...`;
-          await new Promise(r => setTimeout(r, delay));
-          return callAiApi(endpoint, answers, attempt + 1, maxAttempts);
-        } else {
-          throw isTimeout ? new Error("Request timed out. Please check your network.") : err;
-        }
-      }
+async function callAiApi(endpoint, answers, attempt = 1, maxAttempts = 3) {
+  const headers = { "Content-Type": "application/json" };
+  if (currentUser) {
+    const token = await currentUser.getIdToken();
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  const timeoutMs = 45000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch(endpoint, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({ answers }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!resp.ok) {
+      let errMsg = `Server error: ${resp.status}`;
+      try { const d = await resp.json(); if (d.error) errMsg = d.error; } catch (_) {}
+      throw new Error(errMsg);
     }
+    return await resp.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    const isTimeout = err.name === "AbortError";
+    if (attempt < maxAttempts) {
+      const delay = Math.pow(2, attempt) * 1500;
+      if (loadingProgressText) loadingProgressText.textContent = `Attempt ${attempt} failed. Retrying in ${delay/1000}s...`;
+      await new Promise(r => setTimeout(r, delay));
+      return callAiApi(endpoint, answers, attempt + 1, maxAttempts);
+    } else {
+      throw isTimeout ? new Error("Request timed out. Please check your network.") : err;
+    }
+  }
+}  
+    
 
     function renderReport(data) {
       if (config.renderReport) {
