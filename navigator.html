@@ -1089,19 +1089,18 @@
     <p class="footer-copy">&copy; 2026 Polaris. Built for students, by students.</p>
   </div>
 </footer>
-<!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: import.meta.env.AIzaSyApM_d2eQOI1HzvSQaA-HdLjSs7aIZezzE,
-    authDomain: import.meta.env.polaris-6bb4a.firebaseapp.com,
-    projectId: import.meta.env.polaris-6bb4a,
-    storageBucket: import.meta.env.polaris-6bb4a.firebasestorage.app,
-    messagingSenderId: import.meta.env.803112836370,
-    appId: import.meta.env.1:803112836370:web:c3764f8676e915acb6e7cb,
+    apiKey: "AIzaSyApM_d2eQOI1HzvSQaA-HdLjSs7aIZezzE",
+    authDomain: "polaris-6bb4a.firebaseapp.com",
+    projectId: "polaris-6bb4a",
+    storageBucket: "polaris-6bb4a.firebasestorage.app",
+    messagingSenderId: "803112836370",
+    appId: "1:803112836370:web:c3764f8676e915acb6e7cb",
   };
 
   const app = initializeApp(firebaseConfig);
