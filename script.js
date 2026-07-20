@@ -1514,75 +1514,74 @@
 }
   // Olympiad Report
   function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
-    titleEl.textContent = data.targetOlympiad || "Olympiad Preparation";
-    leadEl.textContent = data.currentLevelAssessment || "Assessment.";
-    gridEl.innerHTML = "";
+  titleEl.textContent = data.targetOlympiad || "Olympiad Preparation";
+  leadEl.textContent = data.currentLevelAssessment || "Assessment.";
+  gridEl.innerHTML = "";
 
-    // Syllabus
-    const syllabus = data.syllabusBreakdown || [];
-    if (syllabus.length) {
-      const html = syllabus.map(s => `
-        <li style="margin-bottom: 6px;"><strong>${s.topic}</strong> — ${s.priority} — ${s.whyItMatters}</li>
-      `).join("");
-      gridEl.appendChild(createGridCard("Syllabus Breakdown", `<ul>${html}</ul>`, "📘"));
-    }
-
-    // Resources
-    const res = data.resourceList || [];
-    if (res.length) {
-      const html = res.map(r => `
-        <li style="margin-bottom: 8px; list-style: none; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
-          <strong style="display: block;">${r.title}</strong>
-          <span style="font-size: 0.85rem; color: var(--gold-bright);">${r.author}</span>
-          <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">${r.description}</p>
-        </li>
-      `).join("");
-      gridEl.appendChild(createGridCard("Resource List", `<ul style="padding-left: 0;">${html}</ul>`, "📚"));
-    }
-
-    // Weekly Schedule
-    const weeks = data.weeklySchedule || [];
-    if (weeks.length) {
-      const html = weeks.map(w => `
-        <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
-          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
-          <p style="margin: 4px 0;">Focus: ${w.focus}</p>
-          <ul style="margin: 0 0 0 16px;">${w.tasks ? w.tasks.map(t => `<li>${t}</li>`).join('') : ''}</ul>
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
-    }
-
-    // Practice Problem Sets
-    const sets = data.practiceProblemSets || [];
-    if (sets.length) {
-      const html = sets.map(s => `<li><strong>${s.source}</strong> — ${s.description}</li>`).join("");
-      gridEl.appendChild(createGridCard("Practice Problem Sets", `<ul>${html}</ul>", "📝"));
-    }
-
-    // Mock Test Plan
-    if (data.mockTestPlan) {
-      gridEl.appendChild(createGridCard("Mock Test Plan", `<p>${data.mockTestPlan}</p>`, "📋"));
-    }
-
-    // Common Mistakes
-    if (data.commonMistakes && data.commonMistakes.length) {
-      const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
-    }
-
-    // Next Three Actions
-    if (data.nextThreeActions && data.nextThreeActions.length) {
-      const html = data.nextThreeActions.map((a, i) => `
-        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
-          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
-          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
-    }
+  // Syllabus
+  const syllabus = data.syllabusBreakdown || [];
+  if (syllabus.length) {
+    const html = syllabus.map(s => `
+      <li style="margin-bottom: 6px;"><strong>${s.topic}</strong> — ${s.priority} — ${s.whyItMatters}</li>
+    `).join("");
+    gridEl.appendChild(createGridCard("Syllabus Breakdown", `<ul>${html}</ul>`, "📘"));
   }
 
+  // Resources
+  const res = data.resourceList || [];
+  if (res.length) {
+    const html = res.map(r => `
+      <li style="margin-bottom: 8px; list-style: none; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+        <strong style="display: block;">${r.title}</strong>
+        <span style="font-size: 0.85rem; color: var(--gold-bright);">${r.author}</span>
+        <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">${r.description}</p>
+      </li>
+    `).join("");
+    gridEl.appendChild(createGridCard("Resource List", `<ul style="padding-left: 0;">${html}</ul>`, "📚"));
+  }
+
+  // Weekly Schedule
+  const weeks = data.weeklySchedule || [];
+  if (weeks.length) {
+    const html = weeks.map(w => `
+      <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+        <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
+        <p style="margin: 4px 0;">Focus: ${w.focus}</p>
+        <ul style="margin: 0 0 0 16px;">${w.tasks ? w.tasks.map(t => `<li>${t}</li>`).join('') : ''}</ul>
+      </div>
+    `).join("");
+    gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
+  }
+
+  // Practice Problem Sets – CORRECTED
+  const sets = data.practiceProblemSets || [];
+  if (sets.length) {
+    const html = sets.map(s => `<li><strong>${s.source}</strong> — ${s.description}</li>`).join("");
+    gridEl.appendChild(createGridCard("Practice Problem Sets", `<ul>${html}</ul>`, "📝"));
+  }
+
+  // Mock Test Plan – CORRECTED
+  if (data.mockTestPlan) {
+    gridEl.appendChild(createGridCard("Mock Test Plan", `<p>${data.mockTestPlan}</p>`, "📋"));
+  }
+
+  // Common Mistakes
+  if (data.commonMistakes && data.commonMistakes.length) {
+    const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
+    gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
+  }
+
+  // Next Three Actions
+  if (data.nextThreeActions && data.nextThreeActions.length) {
+    const html = data.nextThreeActions.map((a, i) => `
+      <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+        <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+        <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+      </div>
+    `).join("");
+    gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+  }
+}
   // Portfolio Report
   function renderPortfolioReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = "Portfolio Narrative";
