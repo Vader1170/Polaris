@@ -1419,100 +1419,99 @@
 
   // Science Fair Report
   function renderScienceFairReport(data, titleEl, leadEl, gridEl) {
-    titleEl.textContent = data.projectTitle || "Science Fair Project";
-    leadEl.textContent = data.hypothesisStatement || "Hypothesis statement.";
-    gridEl.innerHTML = "";
+  titleEl.textContent = data.projectTitle || "Science Fair Project";
+  leadEl.textContent = data.hypothesisStatement || "Hypothesis statement.";
+  gridEl.innerHTML = "";
 
-    // Hypothesis
-    gridEl.appendChild(createFullWidthCard(
-      "Hypothesis",
-      `<p style="font-size: 1.1rem; font-weight: 500; color: var(--gold-bright);">${data.hypothesisStatement || "Not provided"}</p>`,
-      "✺", false
-    ));
+  // Hypothesis
+  gridEl.appendChild(createFullWidthCard(
+    "Hypothesis",
+    `<p style="font-size: 1.1rem; font-weight: 500; color: var(--gold-bright);">${data.hypothesisStatement || "Not provided"}</p>`,
+    "✺", false
+  ));
 
-    // Variables
-    const iv = data.independentVariable || "Not specified";
-    const dv = data.dependentVariable || "Not specified";
-    const cv = data.controlledVariables || [];
-    const varsHtml = `
-      <p><strong>Independent Variable:</strong> ${iv}</p>
-      <p><strong>Dependent Variable:</strong> ${dv}</p>
-      ${cv.length ? `<p><strong>Controlled Variables:</strong> ${cv.join(', ')}</p>` : ''}
-    `;
-    gridEl.appendChild(createGridCard("Variables", varsHtml, "📊"));
+  // Variables
+  const iv = data.independentVariable || "Not specified";
+  const dv = data.dependentVariable || "Not specified";
+  const cv = data.controlledVariables || [];
+  const varsHtml = `
+    <p><strong>Independent Variable:</strong> ${iv}</p>
+    <p><strong>Dependent Variable:</strong> ${dv}</p>
+    ${cv.length ? `<p><strong>Controlled Variables:</strong> ${cv.join(', ')}</p>` : ''}
+  `;
+  gridEl.appendChild(createGridCard("Variables", varsHtml, "📊"));
 
-    // Experimental Design
-    const design = data.experimentalDesign || [];
-    if (design.length) {
-      const html = design.map(step => `
-        <li style="margin-bottom: 8px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
-          <strong>${step.title}</strong> — ${step.description}
-        </li>
-      `).join("");
-      gridEl.appendChild(createGridCard("Experimental Design", `<ul style="padding-left: 0;">${html}</ul>`, "🔬"));
-    }
-
-    // Materials
-    const mats = data.materialsAndEquipment || [];
-    if (mats.length) {
-      const html = mats.map(m => `
-        <li style="margin-bottom: 8px; list-style: none;">
-          <strong>${m.name}</strong> — ${m.purpose} (${m.whereToGet || ''})
-        </li>
-      `).join("");
-      gridEl.appendChild(createGridCard("Materials & Equipment", `<ul style="padding-left: 0;">${html}</ul>`, "🛠️"));
-    }
-
-    // Data Collection
-    if (data.dataCollectionPlan) {
-      gridEl.appendChild(createGridCard("Data Collection Plan", `<p>${data.dataCollectionPlan}</p>`, "📈"));
-    }
-
-    // Validation & Controls
-    if (data.validationAndControls && data.validationAndControls.length) {
-      const html = data.validationAndControls.map(v => `<li>${v}</li>`).join("");
-      gridEl.appendChild(createGridCard("Validation & Controls", `<ul>${html}</ul>`, "✅"));
-    }
-
-    // Display Board Outline
-    const board = data.displayBoardOutline || [];
-    if (board.length) {
-      const html = board.map(s => `<li><strong>${s.title}</strong> — ${s.description}</li>`).join("");
-      gridEl.appendChild(createGridCard("Display Board Outline", `<ul>${html}</ul>`, "🖼️"));
-    }
-
-    // Timeline
-    const timeline = data.timelineToFairDate || [];
-    if (timeline.length) {
-      const html = timeline.map(t => `
-        <div style="margin-bottom: 10px;">
-          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.milestone}</strong> — ${t.targetDate || t.weekLabel || ''}
-          <ul style="margin: 4px 0 0 16px;">${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Timeline to Fair Date", html, "📅"));
-    }
-
-    // Judging Prep
-    if (data.judgingPrepChecklist && data.judgingPrepChecklist.length) {
-      const html = data.judgingPrepChecklist.map(j => `<li>${j}</li>`).join("");
-      gridEl.appendChild(createGridCard("Judging Prep Checklist", `<ul>${html}</ul>`, "👨‍⚖️"));
-    }
-
-    // Common Pitfalls
-    if (data.commonPitfalls && data.commonPitfalls.length) {
-      const html = data.commonPitfalls.map(p => `<li>${p}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Pitfalls", `<ul>${html}</ul>", "⚠️"));
-    }
-
-    // Suitable Fairs
-    const fairs = data.suitableFairs || [];
-    if (fairs.length) {
-      const html = fairs.map(f => `<li><strong>${f.name}</strong> — ${f.suitability}</li>`).join("");
-      gridEl.appendChild(createGridCard("Suitable Fairs", `<ul>${html}</ul>`, "🏆"));
-    }
+  // Experimental Design
+  const design = data.experimentalDesign || [];
+  if (design.length) {
+    const html = design.map(step => `
+      <li style="margin-bottom: 8px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
+        <strong>${step.title}</strong> — ${step.description}
+      </li>
+    `).join("");
+    gridEl.appendChild(createGridCard("Experimental Design", `<ul style="padding-left: 0;">${html}</ul>`, "🔬"));
   }
 
+  // Materials
+  const mats = data.materialsAndEquipment || [];
+  if (mats.length) {
+    const html = mats.map(m => `
+      <li style="margin-bottom: 8px; list-style: none;">
+        <strong>${m.name}</strong> — ${m.purpose} (${m.whereToGet || ''})
+      </li>
+    `).join("");
+    gridEl.appendChild(createGridCard("Materials & Equipment", `<ul style="padding-left: 0;">${html}</ul>`, "🛠️"));
+  }
+
+  // Data Collection
+  if (data.dataCollectionPlan) {
+    gridEl.appendChild(createGridCard("Data Collection Plan", `<p>${data.dataCollectionPlan}</p>`, "📈"));
+  }
+
+  // Validation & Controls
+  if (data.validationAndControls && data.validationAndControls.length) {
+    const html = data.validationAndControls.map(v => `<li>${v}</li>`).join("");
+    gridEl.appendChild(createGridCard("Validation & Controls", `<ul>${html}</ul>`, "✅"));
+  }
+
+  // Display Board Outline
+  const board = data.displayBoardOutline || [];
+  if (board.length) {
+    const html = board.map(s => `<li><strong>${s.title}</strong> — ${s.description}</li>`).join("");
+    gridEl.appendChild(createGridCard("Display Board Outline", `<ul>${html}</ul>`, "🖼️"));
+  }
+
+  // Timeline
+  const timeline = data.timelineToFairDate || [];
+  if (timeline.length) {
+    const html = timeline.map(t => `
+      <div style="margin-bottom: 10px;">
+        <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.milestone}</strong> — ${t.targetDate || t.weekLabel || ''}
+        <ul style="margin: 4px 0 0 16px;">${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
+      </div>
+    `).join("");
+    gridEl.appendChild(createFullWidthCard("Timeline to Fair Date", html, "📅"));
+  }
+
+  // Judging Prep
+  if (data.judgingPrepChecklist && data.judgingPrepChecklist.length) {
+    const html = data.judgingPrepChecklist.map(j => `<li>${j}</li>`).join("");
+    gridEl.appendChild(createGridCard("Judging Prep Checklist", `<ul>${html}</ul>`, "👨‍⚖️"));
+  }
+
+  // Common Pitfalls
+  if (data.commonPitfalls && data.commonPitfalls.length) {
+    const html = data.commonPitfalls.map(p => `<li>${p}</li>`).join("");
+    gridEl.appendChild(createGridCard("Common Pitfalls", `<ul>${html}</ul>`, "⚠️"));
+  }
+
+  // Suitable Fairs – FIXED LINE
+  const fairs = data.suitableFairs || [];
+  if (fairs.length) {
+    const html = fairs.map(f => `<li><strong>${f.name}</strong> — ${f.suitability}</li>`).join("");
+    gridEl.appendChild(createGridCard("Suitable Fairs", `<ul>${html}</ul>`, "🏆"));
+  }
+}
   // Olympiad Report
   function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = data.targetOlympiad || "Olympiad Preparation";
