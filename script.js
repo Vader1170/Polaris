@@ -197,53 +197,53 @@
 
   // ── Navigator factory ──────────────────────────────────────────────
 
-     const {
-     key,
-     questions,
-     introSelector,
-     formSelector,
-     progressFillSelector,
-     currentStepSelector,
-     totalStepsSelector,
-     questionViewportSelector,
-     errorSelector,
-     prevBtnSelector,
-     nextBtnSelector,
-     completeSelector,
-     resultsOutputSelector,
-     restartBtnSelectors = [],             // ✅ default empty array
-     generateBtnSelector = null,
-     loadingSelector,
-     loadingMessageSelector,
-     loadingProgressFillSelector,
-     loadingProgressTextSelector,
-     reportSelector,
-     reportTitleSelector,
-     reportLeadSelector,
-     reportGridSelector,
-     regenerateBtnSelector = null,
-     printBtnSelector = null,
-     errorSelectorFull,
-     errorMessageSelector,
-     errorBackBtnSelector = null,
-     retryBtnSelector = null,
-     isJournal = false,
-     // journal-specific
-     journalAppSelector,
-     journalEntryForm,
-     journalDate,
-     journalWork,
-     journalBlockers,
-     journalNext,
-     journalEntriesList,
-     journalSummarizeBtn,
-     journalSummaryContainer,
-     journalSummaryContent,
-     journalError,
-     journalErrorMessage,
-     journalRetrySummary,
-     journalSummaryClose,
-   } = config;
+  function createNavigator(config) {
+    const {
+      key,
+      questions,
+      introSelector,
+      formSelector,
+      progressFillSelector,
+      currentStepSelector,
+      totalStepsSelector,
+      questionViewportSelector,
+      errorSelector,
+      prevBtnSelector,
+      nextBtnSelector,
+      completeSelector,
+      resultsOutputSelector,
+      restartBtnSelectors = [],
+      generateBtnSelector = null,
+      loadingSelector,
+      loadingMessageSelector,
+      loadingProgressFillSelector,
+      loadingProgressTextSelector,
+      reportSelector,
+      reportTitleSelector,
+      reportLeadSelector,
+      reportGridSelector,
+      regenerateBtnSelector = null,
+      printBtnSelector = null,
+      errorSelectorFull,
+      errorMessageSelector,
+      errorBackBtnSelector = null,
+      retryBtnSelector = null,
+      isJournal = false,
+      journalAppSelector,
+      journalEntryForm,
+      journalDate,
+      journalWork,
+      journalBlockers,
+      journalNext,
+      journalEntriesList,
+      journalSummarizeBtn,
+      journalSummaryContainer,
+      journalSummaryContent,
+      journalError,
+      journalErrorMessage,
+      journalRetrySummary,
+      journalSummaryClose,
+    } = config;
 
     const state = {
       currentIndex: 0,
@@ -803,7 +803,7 @@
     return config;
   }
 
-  // ── Question definitions (unchanged) ──────────────────────────────
+  // ── Question definitions ──────────────────────────────────────────
 
   const researchQuestions = [
     { key: "age", type: "text", inputType: "number", label: "How old are you?", hint: "This helps calibrate ambition.", placeholder: "e.g. 16", required: true },
@@ -1938,4 +1938,6 @@
       `).join("");
       gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
     }
+  }
+
 })();
