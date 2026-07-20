@@ -1938,6 +1938,4 @@
       `).join("");
       gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
     }
-  }
-
 })();
