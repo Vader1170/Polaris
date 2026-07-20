@@ -327,6 +327,31 @@
   </div>
 </footer>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyApM_d2eQOI1HzvSQaA-HdLjSs7aIZezzE",
+    authDomain: "polaris-6bb4a.firebaseapp.com",
+    projectId: "polaris-6bb4a",
+    storageBucket: "polaris-6bb4a.firebasestorage.app",
+    messagingSenderId: "803112836370",
+    appId: "1:803112836370:web:c3764f8676e915acb6e7cb",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.signOut = signOut;
+  window.onAuthStateChanged = onAuthStateChanged;
+  window.signInWithPopup = signInWithPopup;
+  window.GoogleAuthProvider = GoogleAuthProvider;
+</script>
 <script type="module" src="script.js"></script>
 </body>
 </html>
