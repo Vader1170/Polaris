@@ -1056,4 +1056,925 @@
     questions: projectQuestions,
     introSelector: "#project-intro",
     formSelector: "#project-form",
-    progressFillSelector: "#project-progress-f
+    progressFillSelector: "#project-progress-fill",
+    currentStepSelector: "#project-current-step",
+    totalStepsSelector: "#project-total-steps",
+    questionViewportSelector: "#project-question-viewport",
+    errorSelector: "#project-form-error",
+    prevBtnSelector: ".project-prev-btn",
+    nextBtnSelector: ".project-next-btn",
+    completeSelector: "#project-complete",
+    resultsOutputSelector: "#project-results-output",
+    restartBtnSelectors: [".project-restart-btn"],
+    generateBtnSelector: ".project-generate-btn",
+    loadingSelector: "#project-loading",
+    loadingMessageSelector: "#project-loading-message",
+    loadingProgressFillSelector: "#project-loading-progress-fill",
+    loadingProgressTextSelector: "#project-loading-progress-text",
+    reportSelector: "#project-report",
+    reportTitleSelector: "#project-report-title",
+    reportLeadSelector: "#project-report-lead",
+    reportGridSelector: "#project-report-grid",
+    regenerateBtnSelector: ".project-regenerate-btn",
+    printBtnSelector: ".project-print-btn",
+    errorSelectorFull: "#project-error",
+    errorMessageSelector: "#project-error-message",
+    errorBackBtnSelector: ".project-error-back-btn",
+    retryBtnSelector: ".project-retry-btn",
+    generateEndpoint: "/api/generate-project",
+    progressMessages: [
+      { text: "Step 1 of 4: Analysing project scope...", pct: 20 },
+      { text: "Step 2 of 4: Defining core features...", pct: 50 },
+      { text: "Step 3 of 4: Planning milestones...", pct: 75 },
+      { text: "Step 4 of 4: Suggesting tech stack...", pct: 98 },
+    ],
+    renderReport: renderProjectReport,
+  });
+
+  // Learning Planner
+  createNavigator({
+    key: "learning",
+    questions: learningQuestions,
+    introSelector: "#learning-intro",
+    formSelector: "#learning-form",
+    progressFillSelector: "#learning-progress-fill",
+    currentStepSelector: "#learning-current-step",
+    totalStepsSelector: "#learning-total-steps",
+    questionViewportSelector: "#learning-question-viewport",
+    errorSelector: "#learning-form-error",
+    prevBtnSelector: ".learning-prev-btn",
+    nextBtnSelector: ".learning-next-btn",
+    completeSelector: "#learning-complete",
+    resultsOutputSelector: "#learning-results-output",
+    restartBtnSelectors: [".learning-restart-btn"],
+    generateBtnSelector: ".learning-generate-btn",
+    loadingSelector: "#learning-loading",
+    loadingMessageSelector: "#learning-loading-message",
+    loadingProgressFillSelector: "#learning-loading-progress-fill",
+    loadingProgressTextSelector: "#learning-loading-progress-text",
+    reportSelector: "#learning-report",
+    reportTitleSelector: "#learning-report-title",
+    reportLeadSelector: "#learning-report-lead",
+    reportGridSelector: "#learning-report-grid",
+    regenerateBtnSelector: ".learning-regenerate-btn",
+    printBtnSelector: ".learning-print-btn",
+    errorSelectorFull: "#learning-error",
+    errorMessageSelector: "#learning-error-message",
+    errorBackBtnSelector: ".learning-error-back-btn",
+    retryBtnSelector: ".learning-retry-btn",
+    generateEndpoint: "/api/generate-learning",
+    progressMessages: [
+      { text: "Step 1 of 4: Identifying learning goals...", pct: 20 },
+      { text: "Step 2 of 4: Breaking down topics...", pct: 50 },
+      { text: "Step 3 of 4: Creating weekly schedule...", pct: 75 },
+      { text: "Step 4 of 4: Recommending resources...", pct: 98 },
+    ],
+    renderReport: renderLearningReport,
+  });
+
+  // Paper Reviewer
+  createNavigator({
+    key: "paper",
+    questions: paperQuestions,
+    introSelector: "#paper-intro",
+    formSelector: "#paper-form",
+    progressFillSelector: "#paper-progress-fill",
+    currentStepSelector: "#paper-current-step",
+    totalStepsSelector: "#paper-total-steps",
+    questionViewportSelector: "#paper-question-viewport",
+    errorSelector: "#paper-form-error",
+    prevBtnSelector: ".paper-prev-btn",
+    nextBtnSelector: ".paper-next-btn",
+    completeSelector: "#paper-complete",
+    resultsOutputSelector: "#paper-results-output",
+    restartBtnSelectors: [".paper-restart-btn"],
+    generateBtnSelector: ".paper-generate-btn",
+    loadingSelector: "#paper-loading",
+    loadingMessageSelector: "#paper-loading-message",
+    loadingProgressFillSelector: "#paper-loading-progress-fill",
+    loadingProgressTextSelector: "#paper-loading-progress-text",
+    reportSelector: "#paper-report",
+    reportTitleSelector: "#paper-report-title",
+    reportLeadSelector: "#paper-report-lead",
+    reportGridSelector: "#paper-report-grid",
+    regenerateBtnSelector: ".paper-regenerate-btn",
+    printBtnSelector: ".paper-print-btn",
+    errorSelectorFull: "#paper-error",
+    errorMessageSelector: "#paper-error-message",
+    errorBackBtnSelector: ".paper-error-back-btn",
+    retryBtnSelector: ".paper-retry-btn",
+    generateEndpoint: "/api/generate-paper",
+    progressMessages: [
+      { text: "Step 1 of 4: Reading your text...", pct: 20 },
+      { text: "Step 2 of 4: Evaluating methodology...", pct: 50 },
+      { text: "Step 3 of 4: Checking clarity...", pct: 75 },
+      { text: "Step 4 of 4: Formulating revisions...", pct: 98 },
+    ],
+    renderReport: renderPaperReport,
+  });
+
+  // Journal (special)
+  createNavigator({
+    key: "journal",
+    isJournal: true,
+    introSelector: "#journal-intro",
+    journalAppSelector: "#journal-app",
+    journalEntryForm: "#journal-entry-form",
+    journalDate: "#journal-date",
+    journalWork: "#journal-work",
+    journalBlockers: "#journal-blockers",
+    journalNext: "#journal-next",
+    journalEntriesList: "#journal-entries-list",
+    journalSummarizeBtn: "#journal-summarize-btn",
+    journalSummaryContainer: "#journal-summary-container",
+    journalSummaryContent: "#journal-summary-content",
+    journalError: "#journal-error",
+    journalErrorMessage: "#journal-error-message",
+    journalRetrySummary: "#journal-retry-summary",
+    journalSummaryClose: "#journal-summary-close",
+  });
+
+  // Career Explorer
+  createNavigator({
+    key: "career",
+    questions: careerQuestions,
+    introSelector: "#career-intro",
+    formSelector: "#career-form",
+    progressFillSelector: "#career-progress-fill",
+    currentStepSelector: "#career-current-step",
+    totalStepsSelector: "#career-total-steps",
+    questionViewportSelector: "#career-question-viewport",
+    errorSelector: "#career-form-error",
+    prevBtnSelector: ".career-prev-btn",
+    nextBtnSelector: ".career-next-btn",
+    completeSelector: "#career-complete",
+    resultsOutputSelector: "#career-results-output",
+    restartBtnSelectors: [".career-restart-btn"],
+    generateBtnSelector: ".career-generate-btn",
+    loadingSelector: "#career-loading",
+    loadingMessageSelector: "#career-loading-message",
+    loadingProgressFillSelector: "#career-loading-progress-fill",
+    loadingProgressTextSelector: "#career-loading-progress-text",
+    reportSelector: "#career-report",
+    reportTitleSelector: "#career-report-title",
+    reportLeadSelector: "#career-report-lead",
+    reportGridSelector: "#career-report-grid",
+    regenerateBtnSelector: ".career-regenerate-btn",
+    printBtnSelector: ".career-print-btn",
+    errorSelectorFull: "#career-error",
+    errorMessageSelector: "#career-error-message",
+    errorBackBtnSelector: ".career-error-back-btn",
+    retryBtnSelector: ".career-retry-btn",
+    generateEndpoint: "/api/generate-career",
+    progressMessages: [
+      { text: "Step 1 of 4: Analysing your interests...", pct: 20 },
+      { text: "Step 2 of 4: Mapping subfields...", pct: 50 },
+      { text: "Step 3 of 4: Finding labs and opportunities...", pct: 75 },
+      { text: "Step 4 of 4: Outlining next actions...", pct: 98 },
+    ],
+    renderReport: renderCareerReport,
+  });
+
+  // ---------------------------------------------------------
+  // REPORT RENDERERS (reusable helper functions)
+  // ---------------------------------------------------------
+
+  // Generic card creators (matching existing style)
+  function createGridCard(title, innerHTML, icon = "✦", collapsible = true) {
+    const card = document.createElement("div");
+    card.className = "roadmap-card";
+    card.innerHTML = `
+      <h3 style="cursor: ${collapsible ? 'pointer' : 'default'}; display: flex; justify-content: space-between; align-items: center; user-select: none; margin: 0 0 16px; border-bottom: 1px solid rgba(247, 245, 240, 0.08); padding-bottom: 10px;">
+        <span style="display: flex; align-items: center; gap: 10px;">
+          <span style="color: var(--gold); font-size: 1rem;">${icon}</span>
+          ${title}
+        </span>
+        ${collapsible ? '<button type="button" class="collapse-toggle">[ collapse ]</button>' : ''}
+      </h3>
+      <div class="card-content" style="transition: all 0.3s ease;">
+        ${innerHTML}
+      </div>
+    `;
+    if (collapsible) {
+      const h3 = card.querySelector("h3");
+      const toggle = card.querySelector(".collapse-toggle");
+      const content = card.querySelector(".card-content");
+      h3.addEventListener("click", () => {
+        const isCollapsed = content.style.display === "none";
+        content.style.display = isCollapsed ? "block" : "none";
+        toggle.textContent = isCollapsed ? "[ collapse ]" : "[ expand ]";
+        card.style.opacity = isCollapsed ? "1" : "0.85";
+      });
+    }
+    return card;
+  }
+
+  function createFullWidthCard(title, innerHTML, icon = "✦", collapsible = true) {
+    const card = document.createElement("div");
+    card.className = "roadmap-card full-width";
+    card.innerHTML = `
+      <h3 style="cursor: ${collapsible ? 'pointer' : 'default'}; display: flex; justify-content: space-between; align-items: center; user-select: none; margin: 0 0 16px; border-bottom: 1px solid rgba(247, 245, 240, 0.08); padding-bottom: 10px;">
+        <span style="display: flex; align-items: center; gap: 10px;">
+          <span style="color: var(--gold); font-size: 1rem;">${icon}</span>
+          ${title}
+        </span>
+        ${collapsible ? '<button type="button" class="collapse-toggle">[ collapse ]</button>' : ''}
+      </h3>
+      <div class="card-content" style="transition: all 0.3s ease;">
+        ${innerHTML}
+      </div>
+    `;
+    if (collapsible) {
+      const h3 = card.querySelector("h3");
+      const toggle = card.querySelector(".collapse-toggle");
+      const content = card.querySelector(".card-content");
+      h3.addEventListener("click", () => {
+        const isCollapsed = content.style.display === "none";
+        content.style.display = isCollapsed ? "block" : "none";
+        toggle.textContent = isCollapsed ? "[ collapse ]" : "[ expand ]";
+        card.style.opacity = isCollapsed ? "1" : "0.85";
+      });
+    }
+    return card;
+  }
+
+  // Research Report (existing logic adapted)
+  function renderResearchReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = `Path to True North: ${data.recommendedField || data.recommendedResearchArea || "Your Research Journey"}`;
+    leadEl.textContent = data.researchVision || "Your tailored roadmap.";
+    gridEl.innerHTML = "";
+
+    // Recommended Field
+    const fieldVal = data.recommendedField || data.recommendedResearchArea || "Not specified";
+    gridEl.appendChild(createFullWidthCard(
+      "Recommended Field of Inquiry",
+      `<p style="font-size: 1.25rem; color: var(--gold-bright); font-family: var(--font-display); font-weight: 500; margin-bottom: 12px; border-left: 2px solid var(--gold); padding-left: 12px;">${fieldVal}</p>
+       <p style="margin-top: 10px;">${data.researchVision || ""}</p>`,
+      "✦", false
+    ));
+
+    // Possible Research Questions
+    const qs = data.possibleResearchQuestions || data.possibleExperiments || [];
+    if (qs.length) {
+      const html = qs.map(q => {
+        const text = typeof q === 'object' ? (q.title || q.description) : q;
+        return `<li style="margin-bottom: 12px; border-bottom: 1px solid rgba(247, 245, 240, 0.03); padding-bottom: 8px;"><strong style="color: var(--paper);">${text}</strong></li>`;
+      }).join("");
+      gridEl.appendChild(createGridCard("Possible Research Questions", `<ol style="padding-left: 18px; margin-top: 4px;">${html}</ol>`, "❓"));
+    }
+
+    // Background Reading
+    const reading = data.backgroundReading || data.suggestedReadingList || [];
+    if (reading.length) {
+      const html = reading.map(book => `
+        <li style="margin-bottom: 16px; border-bottom: 1px solid rgba(247, 245, 240, 0.05); padding-bottom: 12px; list-style: none;">
+          <strong style="display: block; font-size: 1.05rem; color: var(--paper);">${book.title}</strong>
+          <span style="font-size: 0.85rem; font-family: var(--font-mono); color: var(--gold-bright); display: block; margin-top: 2px;">By ${book.author}</span>
+          <p style="margin: 6px 0 0; font-size: 0.9rem; color: rgba(247, 245, 240, 0.7);">${book.description}</p>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Suggested Background Reading", `<ul style="padding-left: 0;">${html}</ul>`, "📖"));
+    }
+
+    // Skills
+    if (data.skillsToLearn && data.skillsToLearn.length) {
+      const html = data.skillsToLearn.map(s => `<li>${s}</li>`).join("");
+      gridEl.appendChild(createGridCard("Skills To Learn", `<ul class="roadmap-card-mono-list">${html}</ul>`, "🛠️"));
+    }
+
+    // Weekly Roadmap
+    const weeks = data.weeklyRoadmap || data.weeklyPlan || [];
+    if (weeks.length) {
+      const html = weeks.map(w => `
+        <div style="margin-bottom: 16px; border-bottom: 1px solid rgba(247, 245, 240, 0.05); padding-bottom: 12px;">
+          <strong style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--gold-bright); display: block; text-transform: uppercase;">${w.weekNumber}</strong>
+          <span style="font-weight: 600; display: block; margin: 4px 0 8px; color: var(--paper);">${w.objective}</span>
+          <ul style="padding-left: 16px; margin: 0; font-size: 0.9rem; color: rgba(247, 245, 240, 0.75);">
+            ${w.tasks.map(t => `<li style="margin-bottom: 4px;">${t}</li>`).join("")}
+          </ul>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Weekly Roadmap (4-Week Plan)", html, "📅"));
+    }
+
+    // Software Tools
+    const tools = data.softwareTools || data.recommendedSoftware || [];
+    if (tools.length) {
+      const html = tools.map(t => `
+        <li style="margin-bottom: 12px; list-style: none;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.name}</strong>
+          <span style="color: rgba(247, 245, 240, 0.7); font-size: 0.9rem; display: block; margin-top: 2px;">${t.purpose}</span>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Recommended Software & Tools", `<ul style="padding-left: 0;">${html}</ul>`, "💻"));
+    }
+
+    // Experiments
+    const exps = data.experimentIdeas || data.possibleExperiments || [];
+    if (exps.length) {
+      const html = exps.map(e => `
+        <li style="margin-bottom: 16px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
+          <strong style="color: var(--gold-bright); display: block; font-size: 1.02rem;">${e.title}</strong>
+          <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247, 245, 240, 0.7);">${e.description}</p>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Possible Experiments & Methodology", `<ul style="padding-left: 0;">${html}</ul>`, "🔬"));
+    }
+
+    // Publication Checklist
+    if (data.publicationChecklist && data.publicationChecklist.length) {
+      const html = data.publicationChecklist.map(i => `<li style="margin-bottom: 8px;">✔️ ${i}</li>`).join("");
+      gridEl.appendChild(createGridCard("Publication Prep Checklist", `<ul style="list-style: none; padding-left: 0; font-size: 0.92rem;">${html}</ul>`, "📝"));
+    }
+
+    // Competitions
+    const comps = data.competitions || data.potentialCompetitions || [];
+    if (comps.length) {
+      const html = comps.map(c => `
+        <li style="margin-bottom: 12px; list-style: none; background: rgba(247, 245, 240, 0.02); padding: 12px; border-radius: 6px;">
+          <strong style="color: var(--paper);">${c.name}</strong>
+          <p style="margin: 4px 0 0; font-size: 0.88rem; color: rgba(247, 245, 240, 0.65);">${c.suitability}</p>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Potential Competitions & Programs", `<ul style="padding-left: 0;">${html}</ul>`, "🏆"));
+    }
+
+    // Common Mistakes
+    if (data.commonMistakes && data.commonMistakes.length) {
+      const html = data.commonMistakes.map(i => `<li>${i}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Pitfalls & Mistakes", `<ul style="padding-left: 20px; color: #F0A08D;">${html}</ul>`, "⚠️"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Your Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  // Science Fair Report
+  function renderScienceFairReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.projectTitle || "Science Fair Project";
+    leadEl.textContent = data.hypothesisStatement || "Hypothesis statement.";
+    gridEl.innerHTML = "";
+
+    // Hypothesis
+    gridEl.appendChild(createFullWidthCard(
+      "Hypothesis",
+      `<p style="font-size: 1.1rem; font-weight: 500; color: var(--gold-bright);">${data.hypothesisStatement || "Not provided"}</p>`,
+      "✺", false
+    ));
+
+    // Variables
+    const iv = data.independentVariable || "Not specified";
+    const dv = data.dependentVariable || "Not specified";
+    const cv = data.controlledVariables || [];
+    const varsHtml = `
+      <p><strong>Independent Variable:</strong> ${iv}</p>
+      <p><strong>Dependent Variable:</strong> ${dv}</p>
+      ${cv.length ? `<p><strong>Controlled Variables:</strong> ${cv.join(', ')}</p>` : ''}
+    `;
+    gridEl.appendChild(createGridCard("Variables", varsHtml, "📊"));
+
+    // Experimental Design
+    const design = data.experimentalDesign || [];
+    if (design.length) {
+      const html = design.map(step => `
+        <li style="margin-bottom: 8px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
+          <strong>${step.title}</strong> — ${step.description}
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Experimental Design", `<ul style="padding-left: 0;">${html}</ul>`, "🔬"));
+    }
+
+    // Materials
+    const mats = data.materialsAndEquipment || [];
+    if (mats.length) {
+      const html = mats.map(m => `
+        <li style="margin-bottom: 8px; list-style: none;">
+          <strong>${m.name}</strong> — ${m.purpose} (${m.whereToGet || ''})
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Materials & Equipment", `<ul style="padding-left: 0;">${html}</ul>`, "🛠️"));
+    }
+
+    // Data Collection
+    if (data.dataCollectionPlan) {
+      gridEl.appendChild(createGridCard("Data Collection Plan", `<p>${data.dataCollectionPlan}</p>`, "📈"));
+    }
+
+    // Validation & Controls
+    if (data.validationAndControls && data.validationAndControls.length) {
+      const html = data.validationAndControls.map(v => `<li>${v}</li>`).join("");
+      gridEl.appendChild(createGridCard("Validation & Controls", `<ul>${html}</ul>`, "✅"));
+    }
+
+    // Display Board Outline
+    const board = data.displayBoardOutline || [];
+    if (board.length) {
+      const html = board.map(s => `<li><strong>${s.title}</strong> — ${s.description}</li>`).join("");
+      gridEl.appendChild(createGridCard("Display Board Outline", `<ul>${html}</ul>`, "🖼️"));
+    }
+
+    // Timeline
+    const timeline = data.timelineToFairDate || [];
+    if (timeline.length) {
+      const html = timeline.map(t => `
+        <div style="margin-bottom: 10px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.milestone}</strong> — ${t.targetDate || t.weekLabel || ''}
+          <ul style="margin: 4px 0 0 16px;">${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Timeline to Fair Date", html, "📅"));
+    }
+
+    // Judging Prep
+    if (data.judgingPrepChecklist && data.judgingPrepChecklist.length) {
+      const html = data.judgingPrepChecklist.map(j => `<li>${j}</li>`).join("");
+      gridEl.appendChild(createGridCard("Judging Prep Checklist", `<ul>${html}</ul>`, "👨‍⚖️"));
+    }
+
+    // Common Pitfalls
+    if (data.commonPitfalls && data.commonPitfalls.length) {
+      const html = data.commonPitfalls.map(p => `<li>${p}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Pitfalls", `<ul>${html}</ul>", "⚠️"));
+    }
+
+    // Suitable Fairs
+    const fairs = data.suitableFairs || [];
+    if (fairs.length) {
+      const html = fairs.map(f => `<li><strong>${f.name}</strong> — ${f.suitability}</li>`).join("");
+      gridEl.appendChild(createGridCard("Suitable Fairs", `<ul>${html}</ul>`, "🏆"));
+    }
+  }
+
+  // Olympiad Report
+  function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.targetOlympiad || "Olympiad Preparation";
+    leadEl.textContent = data.currentLevelAssessment || "Assessment.";
+    gridEl.innerHTML = "";
+
+    // Syllabus
+    const syllabus = data.syllabusBreakdown || [];
+    if (syllabus.length) {
+      const html = syllabus.map(s => `
+        <li style="margin-bottom: 6px;"><strong>${s.topic}</strong> — ${s.priority} — ${s.whyItMatters}</li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Syllabus Breakdown", `<ul>${html}</ul>`, "📘"));
+    }
+
+    // Resources
+    const res = data.resourceList || [];
+    if (res.length) {
+      const html = res.map(r => `
+        <li style="margin-bottom: 8px; list-style: none; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+          <strong style="display: block;">${r.title}</strong>
+          <span style="font-size: 0.85rem; color: var(--gold-bright);">${r.author}</span>
+          <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">${r.description}</p>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Resource List", `<ul style="padding-left: 0;">${html}</ul>`, "📚"));
+    }
+
+    // Weekly Schedule
+    const weeks = data.weeklySchedule || [];
+    if (weeks.length) {
+      const html = weeks.map(w => `
+        <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
+          <p style="margin: 4px 0;">Focus: ${w.focus}</p>
+          <ul style="margin: 0 0 0 16px;">${w.tasks ? w.tasks.map(t => `<li>${t}</li>`).join('') : ''}</ul>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
+    }
+
+    // Practice Problem Sets
+    const sets = data.practiceProblemSets || [];
+    if (sets.length) {
+      const html = sets.map(s => `<li><strong>${s.source}</strong> — ${s.description}</li>`).join("");
+      gridEl.appendChild(createGridCard("Practice Problem Sets", `<ul>${html}</ul>", "📝"));
+    }
+
+    // Mock Test Plan
+    if (data.mockTestPlan) {
+      gridEl.appendChild(createGridCard("Mock Test Plan", `<p>${data.mockTestPlan}</p>`, "📋"));
+    }
+
+    // Common Mistakes
+    if (data.commonMistakes && data.commonMistakes.length) {
+      const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  // Portfolio Report
+  function renderPortfolioReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = "Portfolio Narrative";
+    leadEl.textContent = data.portfolioNarrative || "Your story.";
+    gridEl.innerHTML = "";
+
+    // Narrative
+    gridEl.appendChild(createFullWidthCard("Through‑Line Story", `<p>${data.portfolioNarrative || "Not provided."}</p>`, "🎓", false));
+
+    // Strengths
+    if (data.strengthsIdentified && data.strengthsIdentified.length) {
+      const html = data.strengthsIdentified.map(s => `<li>${s}</li>`).join("");
+      gridEl.appendChild(createGridCard("Strengths Identified", `<ul>${html}</ul>`, "✅"));
+    }
+
+    // Gaps
+    if (data.gapsToAddress && data.gapsToAddress.length) {
+      const html = data.gapsToAddress.map(g => `<li>${g}</li>`).join("");
+      gridEl.appendChild(createGridCard("Gaps to Address", `<ul>${html}</ul>`, "🔍"));
+    }
+
+    // Recommended Additions
+    const adds = data.recommendedAdditions || [];
+    if (adds.length) {
+      const html = adds.map(a => `<li><strong>${a.title}</strong> — ${a.description} (Effort: ${a.effortLevel})</li>`).join("");
+      gridEl.appendChild(createGridCard("Recommended Additions", `<ul>${html}</ul>`, "📌"));
+    }
+
+    // How to Present Existing
+    const pres = data.howToPresentExisting || [];
+    if (pres.length) {
+      const html = pres.map(p => `<li><strong>${p.item}</strong> — ${p.howToFrameIt}</li>`).join("");
+      gridEl.appendChild(createGridCard("How to Present Existing Work", `<ul>${html}</ul>`, "🖼️"));
+    }
+
+    // Essay Angles
+    if (data.essayAngleSuggestions && data.essayAngleSuggestions.length) {
+      const html = data.essayAngleSuggestions.map(e => `<li>${e}</li>`).join("");
+      gridEl.appendChild(createGridCard("Essay Angle Suggestions", `<ul>${html}</ul>`, "✍️"));
+    }
+
+    // Timeline
+    const timeline = data.timeline || [];
+    if (timeline.length) {
+      const html = timeline.map(t => `
+        <div style="margin-bottom: 8px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.weekOrMonthLabel}</strong>
+          <ul>${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Timeline", html, "📅"));
+    }
+
+    // Red Flags
+    if (data.redFlagsToAvoid && data.redFlagsToAvoid.length) {
+      const html = data.redFlagsToAvoid.map(r => `<li>${r}</li>`).join("");
+      gridEl.appendChild(createGridCard("Red Flags to Avoid", `<ul>${html}</ul>`, "🚩"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  // Debate Report
+  function renderDebateReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.resolutionAnalysis || "Resolution Analysis";
+    leadEl.textContent = "Case framework.";
+    gridEl.innerHTML = "";
+
+    // Resolution Analysis
+    gridEl.appendChild(createFullWidthCard("Resolution Analysis", `<p>${data.resolutionAnalysis || "Not provided."}</p>`, "🗣️", false));
+
+    // Case Framework
+    const framework = data.caseFramework || [];
+    if (framework.length) {
+      const html = framework.map(c => `
+        <div style="margin-bottom: 16px; border-left: 2px solid var(--gold); padding-left: 12px;">
+          <strong style="display: block; font-size: 1.05rem; color: var(--gold-bright);">${c.contentionTitle}</strong>
+          <p><strong>Claim:</strong> ${c.claim}</p>
+          <p><strong>Warrant:</strong> ${c.warrant}</p>
+          <p><strong>Impact:</strong> ${c.impact}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Case Framework", html, "📋"));
+    }
+
+    // Evidence to Find
+    const ev = data.evidenceToFind || [];
+    if (ev.length) {
+      const html = ev.map(e => `<li><strong>${e.claimItSupports}</strong> — ${e.whatKindOfSourceToLookFor}</li>`).join("");
+      gridEl.appendChild(createGridCard("Evidence to Find", `<ul>${html}</ul>`, "🔎"));
+    }
+
+    // Anticipated Opposing Arguments
+    const opp = data.anticipatedOpposingArguments || [];
+    if (opp.length) {
+      const html = opp.map(o => `<li><strong>${o.argument}</strong> — ${o.howToRespond}</li>`).join("");
+      gridEl.appendChild(createGridCard("Anticipated Opposing Arguments", `<ul>${html}</ul>`, "⚔️"));
+    }
+
+    // Cross-Ex Prep
+    if (data.crossExaminationPrep && data.crossExaminationPrep.length) {
+      const html = data.crossExaminationPrep.map(c => `<li>${c}</li>`).join("");
+      gridEl.appendChild(createGridCard("Cross‑Examination Prep", `<ul>${html}</ul>`, "❓"));
+    }
+
+    // Delivery Tips
+    if (data.deliveryTips && data.deliveryTips.length) {
+      const html = data.deliveryTips.map(t => `<li>${t}</li>`).join("");
+      gridEl.appendChild(createGridCard("Delivery Tips", `<ul>${html}</ul>`, "🎤"));
+    }
+
+    // Prep Timeline
+    const timeline = data.prepTimeline || [];
+    if (timeline.length) {
+      const html = timeline.map(t => `
+        <div style="margin-bottom: 8px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.sessionLabel}</strong>
+          <ul>${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Prep Timeline", html, "📅"));
+    }
+
+    // Common Mistakes
+    if (data.commonMistakes && data.commonMistakes.length) {
+      const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  // Project Builder Report
+  function renderProjectReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.projectSummary || "Project Build Plan";
+    leadEl.textContent = "Core features overview.";
+    gridEl.innerHTML = "";
+
+    // Summary
+    gridEl.appendChild(createFullWidthCard("Project Summary", `<p>${data.projectSummary || "Not provided."}</p>`, "🔧", false));
+
+    // Core Features
+    const features = data.coreFeatureList || [];
+    if (features.length) {
+      const html = features.map(f => `<li><strong>${f.feature}</strong> — ${f.priority}</li>`).join("");
+      gridEl.appendChild(createGridCard("Core Features", `<ul>${html}</ul>`, "⚙️"));
+    }
+
+    // Tech Stack
+    const tech = data.suggestedTechStack || [];
+    if (tech.length) {
+      const html = tech.map(t => `<li><strong>${t.layer}</strong> — ${t.tool} (${t.why})</li>`).join("");
+      gridEl.appendChild(createGridCard("Suggested Tech Stack", `<ul>${html}</ul>`, "💻"));
+    }
+
+    // Architecture
+    if (data.architectureOverview) {
+      gridEl.appendChild(createGridCard("Architecture Overview", `<p>${data.architectureOverview}</p>`, "🏗️"));
+    }
+
+    // Milestones
+    const milestones = data.milestones || [];
+    if (milestones.length) {
+      const html = milestones.map(m => `
+        <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Milestone ${m.milestoneNumber}: ${m.title}</strong>
+          <ul>${m.tasks ? m.tasks.map(t => `<li>${t}</li>`).join('') : ''}</ul>
+          <span style="font-size: 0.85rem; color: rgba(247,245,240,0.5);">Estimated: ${m.estimatedWeeks} weeks</span>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Milestones", html, "📋"));
+    }
+
+    // Database Schema
+    if (data.databaseSchemaSketch && data.databaseSchemaSketch.length) {
+      const html = data.databaseSchemaSketch.map(s => `<li><strong>${s.table}</strong> — ${s.keyFields}</li>`).join("");
+      gridEl.appendChild(createGridCard("Database Schema Sketch", `<ul>${html}</ul>`, "🗄️"));
+    }
+
+    // Deployment
+    if (data.deploymentPlan) {
+      gridEl.appendChild(createGridCard("Deployment Plan", `<p>${data.deploymentPlan}</p>`, "🚀"));
+    }
+
+    // Testing Checklist
+    if (data.testingChecklist && data.testingChecklist.length) {
+      const html = data.testingChecklist.map(t => `<li>${t}</li>`).join("");
+      gridEl.appendChild(createGridCard("Testing Checklist", `<ul>${html}</ul>`, "🧪"));
+    }
+
+    // Common Mistakes
+    if (data.commonMistakes && data.commonMistakes.length) {
+      const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  // Learning Planner Report
+  function renderLearningReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.learningGoalSummary || "Learning Plan";
+    leadEl.textContent = data.recommendedResource || "Recommended resource.";
+    gridEl.innerHTML = "";
+
+    // Goal
+    gridEl.appendChild(createFullWidthCard("Learning Goal Summary", `<p>${data.learningGoalSummary || "Not provided."}</p>`, "🗓️", false));
+
+    // Recommended Resource
+    if (data.recommendedResource) {
+      gridEl.appendChild(createGridCard("Recommended Resource", `<p>${data.recommendedResource}</p>`, "📖"));
+    }
+
+    // Topic Breakdown
+    const topics = data.topicBreakdown || [];
+    if (topics.length) {
+      const html = topics.map(t => `
+        <li style="margin-bottom: 8px;"><strong>${t.topic}</strong> — ${t.whyItMatters} ${t.prerequisiteOf ? `(Prerequisite of: ${t.prerequisiteOf.join(', ')})` : ''}</li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Topic Breakdown", `<ul>${html}</ul>`, "📚"));
+    }
+
+    // Weekly Schedule
+    const weeks = data.weeklySchedule || [];
+    if (weeks.length) {
+      const html = weeks.map(w => `
+        <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
+          <ul>${w.topics ? w.topics.map(t => `<li>${t}</li>`).join('') : ''}</ul>
+          ${w.practiceRecommendation ? `<p style="margin: 4px 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">Practice: ${w.practiceRecommendation}</p>` : ''}
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
+    }
+
+    // Self-Check Milestones
+    if (data.selfCheckMilestones && data.selfCheckMilestones.length) {
+      const html = data.selfCheckMilestones.map(m => `<li>${m}</li>`).join("");
+      gridEl.appendChild(createGridCard("Self‑Check Milestones", `<ul>${html}</ul>`, "📋"));
+    }
+
+    // Common Stumbling Blocks
+    if (data.commonStumblingBlocks && data.commonStumblingBlocks.length) {
+      const html = data.commonStumblingBlocks.map(b => `<li>${b}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Stumbling Blocks", `<ul>${html}</ul>`, "⚠️"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  // Paper Reviewer Report
+  function renderPaperReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = "Paper Review";
+    leadEl.textContent = data.overallAssessment || "Overall assessment.";
+    gridEl.innerHTML = "";
+
+    // Overall
+    gridEl.appendChild(createFullWidthCard("Overall Assessment", `<p>${data.overallAssessment || "Not provided."}</p>`, "📝", false));
+
+    // Strengths
+    if (data.strengths && data.strengths.length) {
+      const html = data.strengths.map(s => `<li>${s}</li>`).join("");
+      gridEl.appendChild(createGridCard("Strengths", `<ul>${html}</ul>`, "✅"));
+    }
+
+    // Methodology Issues
+    const meth = data.methodologyIssues || [];
+    if (meth.length) {
+      const html = meth.map(m => `<li><strong>${m.issue}</strong> — ${m.whyItMatters} (Suggested fix: ${m.suggestedFix})</li>`).join("");
+      gridEl.appendChild(createGridCard("Methodology Issues", `<ul>${html}</ul>`, "🔬"));
+    }
+
+    // Clarity Issues
+    const clarity = data.clarityIssues || [];
+    if (clarity.length) {
+      const html = clarity.map(c => `<li><strong>${c.location}</strong> — ${c.issue} (Fix: ${c.suggestedFix})</li>`).join("");
+      gridEl.appendChild(createGridCard("Clarity Issues", `<ul>${html}</ul>`, "✍️"));
+    }
+
+    // Statistical Concerns
+    if (data.statisticalConcerns && data.statisticalConcerns.length) {
+      const html = data.statisticalConcerns.map(s => `<li>${s}</li>`).join("");
+      gridEl.appendChild(createGridCard("Statistical Concerns", `<ul>${html}</ul>`, "📊"));
+    }
+
+    // Citation Concerns
+    if (data.citationConcerns && data.citationConcerns.length) {
+      const html = data.citationConcerns.map(c => `<li>${c}</li>`).join("");
+      gridEl.appendChild(createGridCard("Citation Concerns", `<ul>${html}</ul>`, "📚"));
+    }
+
+    // Revision Priority
+    if (data.revisionPriorityOrder && data.revisionPriorityOrder.length) {
+      const html = data.revisionPriorityOrder.map(r => `<li>${r}</li>`).join("");
+      gridEl.appendChild(createGridCard("Revision Priority Order", `<ul>${html}</ul>`, "📌"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  // Career Explorer Report
+  function renderCareerReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.fieldOverview || "Career Exploration";
+    leadEl.textContent = "Specialization options.";
+    gridEl.innerHTML = "";
+
+    // Field Overview
+    gridEl.appendChild(createFullWidthCard("Field Overview", `<p>${data.fieldOverview || "Not provided."}</p>`, "🧭", false));
+
+    // Specialization Options
+    const specs = data.specializationOptions || [];
+    if (specs.length) {
+      const html = specs.map(s => `
+        <li style="margin-bottom: 8px;"><strong>${s.name}</strong> — ${s.description} (${s.whatItInvolves})</li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Specialization Options", `<ul>${html}</ul>`, "🔍"));
+    }
+
+    // How to Find Labs
+    if (data.howToFindLabs && data.howToFindLabs.length) {
+      const html = data.howToFindLabs.map(h => `<li>${h}</li>`).join("");
+      gridEl.appendChild(createGridCard("How to Find Labs", `<ul>${html}</ul>`, "🔬"));
+    }
+
+    // Internship Program Types
+    const progs = data.internshipProgramTypes || [];
+    if (progs.length) {
+      const html = progs.map(p => `<li><strong>${p.type}</strong> — ${p.description} (Timeline: ${p.typicalTimeline})</li>`).join("");
+      gridEl.appendChild(createGridCard("Internship Program Types", `<ul>${html}</ul>`, "💼"));
+    }
+
+    // Grad School Path
+    if (data.gradSchoolPathOverview) {
+      gridEl.appendChild(createGridCard("Grad School Path Overview", `<p>${data.gradSchoolPathOverview}</p>`, "🎓"));
+    }
+
+    // Next Three Actions
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+})();
