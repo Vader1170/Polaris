@@ -191,6 +191,11 @@ select:focus-visible {
   color: var(--gold);
   font-size: 1.1rem;
 }
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
 .site-nav {
   display: flex;
   align-items: center;
