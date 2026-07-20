@@ -8,18 +8,23 @@
 (function () {
   "use strict";
 
-  // ── Firebase auth & history ──────────────────────────────────────
+ // ── Firebase auth & history ──────────────────────────────────────
 
   let currentUser = null;
-  let firebaseAuth = window.firebaseAuth;
-  let firebaseDb = window.firebaseDb;
 
-  if (firebaseAuth) {
-    window.onAuthStateChanged(firebaseAuth, (user) => {
-      currentUser = user;
-      updateAuthUI(user);
-    });
+  function initAuthListener() {
+    const firebaseAuth = window.firebaseAuth;
+    if (firebaseAuth && window.onAuthStateChanged) {
+      window.onAuthStateChanged(firebaseAuth, (user) => {
+        currentUser = user;
+        updateAuthUI(user);
+      });
+    } else {
+      // Firebase init script hasn't finished setting window.firebaseAuth yet — retry shortly
+      setTimeout(initAuthListener, 100);
+    }
   }
+  initAuthListener();
 
   function updateAuthUI(user) {
     const container = document.getElementById("auth-container");
@@ -34,7 +39,7 @@
         </div>
       `;
       document.getElementById("sign-out-btn")?.addEventListener("click", () => {
-        if (window.signOut) window.signOut(firebaseAuth);
+        if (window.signOut && window.firebaseAuth) window.signOut(window.firebaseAuth);
       });
       document.getElementById("history-btn")?.addEventListener("click", showHistory);
     } else {
@@ -42,8 +47,9 @@
         <button class="btn btn-primary" id="sign-in-btn" style="background: var(--paper); color: var(--navy-950);">Sign in with Google</button>
       `;
       document.getElementById("sign-in-btn")?.addEventListener("click", () => {
+        if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) return;
         const provider = new window.GoogleAuthProvider();
-        window.signInWithPopup(firebaseAuth, provider);
+        window.signInWithPopup(window.firebaseAuth, provider);
       });
     }
   }
@@ -108,46 +114,6 @@
     } catch (err) {
       console.error("History error:", err);
       alert("Could not load history.");
-    }
-  }
-
-  async function loadRoadmapById(id) {
-    if (!currentUser) return;
-    try {
-      const token = await currentUser.getIdToken();
-      const resp = await fetch(`/api/history/${id}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (!resp.ok) throw new Error("Failed to load roadmap");
-      const data = await resp.json();
-      const navName = data.navigatorType || "research";
-      showNavigator(navName);
-      const nav = NAVIGATORS[navName];
-      if (nav) {
-        const section = document.querySelector(`.navigator[data-navigator="${navName}"]`);
-        if (section) {
-          const grid = section.querySelector(nav.reportGridSelector);
-          const titleEl = section.querySelector(nav.reportTitleSelector);
-          const leadEl = section.querySelector(nav.reportLeadSelector);
-          if (grid && titleEl && leadEl && nav.renderReport) {
-            // Hide other views
-            const intro = section.querySelector(".navigator-intro");
-            const form = section.querySelector(".navigator-form");
-            const complete = section.querySelector(".navigator-complete");
-            const loading = section.querySelector(".navigator-loading");
-            const report = section.querySelector(".roadmap-container");
-            if (intro) intro.hidden = true;
-            if (form) form.hidden = true;
-            if (complete) complete.hidden = true;
-            if (loading) loading.hidden = true;
-            if (report) report.hidden = false;
-            nav.renderReport(data.roadmap, titleEl, leadEl, grid);
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Error loading roadmap:", err);
-      alert("Could not load the roadmap.");
     }
   }
 
