@@ -1,5 +1,5 @@
 /* =========================================================
-   POLARIS — MULTI‑NAVIGATOR SYSTEM
+   POLARIS MULTI-NAVIGATOR SYSTEM
    Vanilla JS. No frameworks.
    Supports Research, Science Fair, Olympiad, Portfolio,
    Debate, Project, Learning, Paper, Journal, Career.
@@ -8,22 +8,16 @@
 (function () {
   "use strict";
 
-  /* ---------------------------------------------------------
-     HELPERS: DOM references & utilities
-     --------------------------------------------------------- */
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
-  // Dashboard & back buttons
   const dashboardView = document.getElementById("dashboard-view");
   const backButtons = $$(".back-to-dashboard-btn");
 
-  // Hide all navigator sections
   function hideAllNavigators() {
     $$(".navigator").forEach(el => el.style.display = "none");
   }
 
-  // Show a specific navigator by its data-navigator value
   function showNavigator(name) {
     hideAllNavigators();
     const section = document.querySelector(`.navigator[data-navigator="${name}"]`);
@@ -32,7 +26,6 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Return to dashboard
   function goToDashboard() {
     hideAllNavigators();
     if (dashboardView) dashboardView.style.display = "block";
@@ -41,15 +34,12 @@
 
   backButtons.forEach(btn => btn.addEventListener("click", goToDashboard));
 
-  // Dashboard cards
   const toolCards = $$(".tool-card.active[data-navigator]");
   toolCards.forEach(card => {
     card.addEventListener("click", () => {
       const navName = card.dataset.navigator;
       if (navName) {
-        // If it's the journal, we may need to initialise it later
         showNavigator(navName);
-        // Initialise the navigator state if not already
         if (NAVIGATORS[navName]) {
           const nav = NAVIGATORS[navName];
           if (nav.init) nav.init();
@@ -58,18 +48,14 @@
     });
   });
 
-  /* ---------------------------------------------------------
-     GENERIC NAVIGATOR ENGINE
-     --------------------------------------------------------- */
   const NAVIGATORS = {};
 
-  // Each navigator config: questions, state, renderers, etc.
   function createNavigator(config) {
     const {
-      key,                // e.g. "research"
-      questions,          // array of question objects
-      introSelector,      // e.g. "#research-intro"
-      formSelector,       // e.g. "#research-form"
+      key,
+      questions,
+      introSelector,
+      formSelector,
       progressFillSelector,
       currentStepSelector,
       totalStepsSelector,
@@ -79,7 +65,7 @@
       nextBtnSelector,
       completeSelector,
       resultsOutputSelector,
-      restartBtnSelectors, // array of selectors
+      restartBtnSelectors,
       generateBtnSelector,
       loadingSelector,
       loadingMessageSelector,
@@ -95,7 +81,6 @@
       errorMessageSelector,
       errorBackBtnSelector,
       retryBtnSelector,
-      // Journal specific
       isJournal = false,
       journalAppSelector,
       journalEntryForm,
@@ -113,7 +98,6 @@
       journalSummaryClose,
     } = config;
 
-    // State
     const state = {
       currentIndex: 0,
       direction: "forward",
@@ -121,7 +105,6 @@
       isGenerating: false,
     };
 
-    // DOM refs
     const intro = $(introSelector);
     const form = $(formSelector);
     const progressFill = $(progressFillSelector);
@@ -149,10 +132,8 @@
     const errorBackBtn = $(errorBackBtnSelector);
     const retryBtn = $(retryBtnSelector);
 
-    // Helper: get all restart buttons (maybe multiple)
     const restartBtns = restartBtnSelectors.map(s => $(s)).filter(Boolean);
 
-    // Progress messages for loading
     const progressMessages = config.progressMessages || [
       { text: "Step 1 of 4: Analysing your input...", pct: 15 },
       { text: "Step 2 of 4: Structuring your plan...", pct: 45 },
@@ -160,9 +141,6 @@
       { text: "Step 4 of 4: Finalising report...", pct: 98 },
     ];
 
-    // ---------------------------------------------------------
-    // RENDER / CAPTURE / VALIDATE
-    // ---------------------------------------------------------
     function renderQuestion(index) {
       const q = questions[index];
       const slide = document.createElement("div");
@@ -333,9 +311,6 @@
       goToStep(state.currentIndex - 1, "back");
     }
 
-    // ---------------------------------------------------------
-    // FINISH, LOADING, GENERATE
-    // ---------------------------------------------------------
     function finish() {
       form.hidden = true;
       complete.hidden = false;
@@ -355,7 +330,6 @@
       loading.hidden = true;
       intro.hidden = false;
       form.hidden = true;
-      // Reset progress
       updateChrome();
       intro.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -367,7 +341,6 @@
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    // Update loading status
     function updateLoadingStatus(msg, pct) {
       if (loadingMessage) loadingMessage.textContent = msg;
       if (loadingProgressFill && pct !== undefined) {
@@ -375,7 +348,6 @@
       }
     }
 
-    // Generic generation function
     async function generate() {
       complete.hidden = true;
       loading.hidden = false;
@@ -392,7 +364,7 @@
       }, 2500);
 
       try {
-        const endpoint = config.generateEndpoint; // e.g. "/api/generate-sciencefair"
+        const endpoint = config.generateEndpoint;
         const data = await callAiApi(endpoint, state.answers);
         clearInterval(interval);
         renderReport(data);
@@ -409,7 +381,6 @@
       }
     }
 
-    // API call with retries
     async function callAiApi(endpoint, answers, attempt = 1, maxAttempts = 3) {
       const timeoutMs = 45000;
       const controller = new AbortController();
@@ -442,45 +413,31 @@
       }
     }
 
-    // ---------------------------------------------------------
-    // REPORT RENDERERS (each navigator provides its own)
-    // ---------------------------------------------------------
     function renderReport(data) {
-      // Each navigator has a renderer function
       if (config.renderReport) {
         config.renderReport(data, reportTitle, reportLead, reportGrid);
       } else {
-        // fallback: display JSON
         reportTitle.textContent = "Your Plan";
         reportLead.textContent = "Generated roadmap.";
         reportGrid.innerHTML = `<pre style="color: var(--paper);">${JSON.stringify(data, null, 2)}</pre>`;
       }
     }
 
-    // ---------------------------------------------------------
-    // WIRING EVENTS
-    // ---------------------------------------------------------
     function init() {
-      // Start button
       const startBtn = intro.querySelector(".start-navigator-btn");
       if (startBtn) startBtn.addEventListener("click", startForm);
 
-      // Navigation buttons
       if (prevBtn) prevBtn.addEventListener("click", handlePrev);
       if (nextBtn) nextBtn.addEventListener("click", handleNext);
 
-      // Restart buttons
       restartBtns.forEach(btn => btn.addEventListener("click", restart));
 
-      // Generate button
       if (generateBtn) generateBtn.addEventListener("click", generate);
       if (regenerateBtn) regenerateBtn.addEventListener("click", generate);
       if (retryBtn) retryBtn.addEventListener("click", generate);
 
-      // Print
       if (printBtn) {
         printBtn.addEventListener("click", () => {
-          // Expand all cards
           reportGrid.querySelectorAll(".roadmap-card").forEach(card => {
             const content = card.querySelector(".card-content");
             const toggle = card.querySelector(".collapse-toggle");
@@ -488,7 +445,6 @@
             if (toggle) toggle.textContent = "[ collapse ]";
             card.style.opacity = "1";
           });
-          // Add print header
           let header = report.querySelector(".print-report-header");
           if (!header) {
             header = document.createElement("div");
@@ -497,21 +453,18 @@
           }
           const titleText = reportTitle.textContent || "Polaris Plan";
           const dateStr = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-          header.innerHTML = `<span>Polaris — ${titleText}</span><span>Generated ${dateStr}</span>`;
+          header.innerHTML = `<span>Polaris - ${titleText}</span><span>Generated ${dateStr}</span>`;
           window.print();
         });
       }
 
-      // Error back button
       if (errorBackBtn) errorBackBtn.addEventListener("click", () => {
         errorScreen.hidden = true;
         complete.hidden = false;
       });
 
-      // Form submit (prevent)
       if (form) form.addEventListener("submit", e => e.preventDefault());
 
-      // Keyboard shortcut: Enter on text inputs
       if (form) {
         form.addEventListener("keydown", (e) => {
           const isText = e.target.tagName === "INPUT" && e.target.type !== "checkbox" && e.target.type !== "radio";
@@ -522,14 +475,11 @@
         });
       }
 
-      // Init state
       if (totalSteps) totalSteps.textContent = questions.length;
       updateChrome();
     }
 
-    // Journal-specific initialisation
     if (isJournal) {
-      // Override init and add CRUD
       const journalApp = $(journalAppSelector);
       const entryForm = $(journalEntryForm);
       const dateInput = $(journalDate);
@@ -545,7 +495,8 @@
       const journalErrorMsg = $(journalErrorMessage);
       const journalRetry = $(journalRetrySummary);
 
-      // Load entries from localStorage
+      let editingIndex = null;
+
       function loadEntries() {
         const raw = localStorage.getItem(`polaris-journal-${key}`);
         return raw ? JSON.parse(raw) : [];
@@ -561,7 +512,6 @@
           entriesList.innerHTML = '<p style="color: rgba(247,245,240,0.5);">No entries yet. Start logging!</p>';
           return;
         }
-        // Reverse chronological
         const sorted = [...entries].reverse();
         let html = '';
         sorted.forEach((entry, idx) => {
@@ -583,7 +533,6 @@
         });
         entriesList.innerHTML = html;
 
-        // Attach delete and edit events
         entriesList.querySelectorAll('.journal-delete-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const idx = parseInt(btn.dataset.index);
@@ -604,17 +553,12 @@
             workInput.value = entry.work || '';
             blockersInput.value = entry.blockers || '';
             nextInput.value = entry.next || '';
-            // Remove the old entry (user will save as new or we can replace)
-            entries.splice(idx, 1);
-            saveEntries(entries);
-            renderEntries();
-            // Focus on work
+            editingIndex = idx;
             workInput.focus();
           });
         });
       }
 
-      // Submit new entry
       function handleJournalSubmit(e) {
         e.preventDefault();
         const date = dateInput.value;
@@ -624,33 +568,35 @@
           return;
         }
         const entries = loadEntries();
-        entries.push({
+        const entryData = {
           date,
           work,
           blockers: blockersInput.value.trim(),
           next: nextInput.value.trim(),
-        });
+        };
+        if (editingIndex !== null && entries[editingIndex]) {
+          entries[editingIndex] = entryData;
+          editingIndex = null;
+        } else {
+          entries.push(entryData);
+        }
         saveEntries(entries);
         renderEntries();
         entryForm.reset();
-        // Set today's date again
         dateInput.value = new Date().toISOString().split('T')[0];
         workInput.focus();
       }
 
-      // Summarize
       async function summarizeJournal() {
         const entries = loadEntries();
         if (entries.length === 0) {
           alert('No entries to summarize. Please add some entries first.');
           return;
         }
-        // Ask user how many recent entries
         const count = prompt('How many recent entries to summarize? (e.g. 5)', '5');
         if (!count) return;
         const n = parseInt(count) || 5;
         const recent = entries.slice(-n);
-        // Show loading
         summaryContainer.style.display = 'block';
         summaryContent.innerHTML = '<p>Generating summary...</p>';
         journalErrorEl.hidden = true;
@@ -669,76 +615,55 @@
         }
       }
 
-      // Journal init (override)
       function journalInit() {
-        // Override start to show app
         const startBtn = intro.querySelector(".start-navigator-btn");
         if (startBtn) {
           startBtn.addEventListener("click", () => {
             intro.hidden = true;
             journalApp.hidden = false;
-            // Set today's date
             dateInput.value = new Date().toISOString().split('T')[0];
             renderEntries();
           });
         }
-        // Form submit
         if (entryForm) entryForm.addEventListener("submit", handleJournalSubmit);
-        // Summarize
         if (summarizeBtn) summarizeBtn.addEventListener("click", summarizeJournal);
-        // Close summary
         if (summaryClose) summaryClose.addEventListener("click", () => {
           summaryContainer.style.display = 'none';
         });
-        // Retry summary
         if (journalRetry) journalRetry.addEventListener("click", summarizeJournal);
-        // Back to dashboard from journal
-        // back buttons already handled
       }
 
-      // Store init function
       config.init = journalInit;
-
-      // Also store renderEntries so we can call it from outside if needed
       config.renderEntries = renderEntries;
 
-      // Return early; the generic init will not be used
+      NAVIGATORS[key] = config;
       return config;
     }
 
-    // For non-journal navigators, store init
     config.init = init;
-
-    // Store state and helpers for external access (if needed)
     NAVIGATORS[key] = config;
 
     return config;
   }
 
-  // ---------------------------------------------------------
-  // QUESTION ARRAYS FOR EACH NAVIGATOR
-  // ---------------------------------------------------------
-
-  // 1. RESEARCH (existing, but we'll redefine with same questions)
   const researchQuestions = [
     { key: "age", type: "text", inputType: "number", label: "How old are you?", hint: "This helps calibrate ambition.", placeholder: "e.g. 16", required: true },
     { key: "interests", type: "textarea", label: "What are you genuinely curious about right now?", hint: "Any field, hobby, or question counts.", placeholder: "e.g. how vaccines are designed, why markets crash...", required: true },
     { key: "favouriteSubjects", type: "checkbox", label: "Which subjects do you enjoy most?", hint: "Select all that apply.", required: true, options: ["Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", "Economics", "Engineering", "Humanities / Social Science", "Other"] },
     { key: "mathBackground", type: "radio", label: "How would you describe your mathematical background?", hint: "Be honest.", required: true, options: ["Just school-level math", "Comfortable with calculus", "Comfortable with linear algebra / proofs", "Studied topics beyond standard high school math (e.g. olympiad math, real analysis)"] },
     { key: "programmingExperience", type: "radio", label: "What's your programming experience?", hint: "", required: true, options: ["None yet", "Beginner (basic syntax, small scripts)", "Intermediate (built small projects independently)", "Advanced (comfortable with data structures, libraries, or larger codebases)"] },
-    { key: "availableTime", type: "dropdown", label: "How much time can you realistically commit each week?", hint: "", required: true, options: ["Choose an option", "Under 3 hours", "3–6 hours", "6–10 hours", "10+ hours"] },
+    { key: "availableTime", type: "dropdown", label: "How much time can you realistically commit each week?", hint: "", required: true, options: ["Choose an option", "Under 3 hours", "3-6 hours", "6-10 hours", "10+ hours"] },
     { key: "researchExperience", type: "radio", label: "Have you done any research before?", hint: "", required: true, options: ["None yet", "A school project or science fair", "An independent project I designed myself", "Worked with a mentor, lab, or published something"] },
-    { key: "publicationGoals", type: "dropdown", label: "Is publishing your research a goal for you?", hint: "", required: true, options: ["Choose an option", "Not a priority right now", "Yes, eventually", "Yes — I'm actively aiming for a specific journal or conference"] },
+    { key: "publicationGoals", type: "dropdown", label: "Is publishing your research a goal for you?", hint: "", required: true, options: ["Choose an option", "Not a priority right now", "Yes, eventually", "Yes - I'm actively aiming for a specific journal or conference"] },
     { key: "competitionGoals", type: "checkbox", label: "Are you targeting any competitions?", hint: "Select all that apply, or skip if none.", required: false, options: ["Math olympiads (e.g. AMTI, INMO)", "Science fairs (e.g. ISEF, AIMER)", "RSI / research-focused programs", "Coding competitions", "None currently"] },
     { key: "learningStyle", type: "radio", label: "How do you learn best?", hint: "", required: true, options: ["Reading textbooks and papers on my own", "Watching lectures or video explanations", "Working through problems hands-on", "Discussing ideas with a mentor or peers"] },
     { key: "resourcesAvailable", type: "checkbox", label: "What resources do you currently have access to?", hint: "Select all that apply.", required: true, options: ["A mentor or teacher who can guide me", "A computer and stable internet", "A library or paid journal access", "A school lab or research facility", "None of the above yet"] },
-    { key: "biggestChallenge", type: "textarea", label: "What's the biggest thing holding you back right now?", hint: "Time, direction, resources, confidence — anything.", placeholder: "e.g. I don't know how to find a research question worth pursuing...", required: true },
-    { key: "dreamProject", type: "textarea", label: "If nothing could stop you, what would your dream project be?", hint: "Think big — this shapes the direction.", placeholder: "e.g. build a model that predicts...", required: false },
+    { key: "biggestChallenge", type: "textarea", label: "What's the biggest thing holding you back right now?", hint: "Time, direction, resources, confidence - anything.", placeholder: "e.g. I don't know how to find a research question worth pursuing...", required: true },
+    { key: "dreamProject", type: "textarea", label: "If nothing could stop you, what would your dream project be?", hint: "Think big - this shapes the direction.", placeholder: "e.g. build a model that predicts...", required: false },
     { key: "careerAspirations", type: "text", inputType: "text", label: "What's your long-term career aspiration?", hint: "It's okay if this is a rough guess.", placeholder: "e.g. aerospace engineer, research scientist, founder...", required: false },
     { key: "currentGoal", type: "dropdown", label: "What's your single most immediate goal right now?", hint: "", required: true, options: ["Choose an option", "Finding a research topic", "Preparing for a competition", "Preparing for university admissions (e.g. MIT, Cambridge)", "Building technical skills", "Writing or publishing a paper"] },
   ];
 
-  // 2. SCIENCE FAIR
   const scienceFairQuestions = [
     { key: "targetFairs", type: "checkbox", label: "Which fair(s) are you targeting?", hint: "Select all that apply.", required: true, options: ["ISEF/Regeneron affiliate fair", "EUCYS", "State/regional fair", "School fair", "Other/unsure"] },
     { key: "deadline", type: "text", inputType: "date", label: "Fair deadline / project timeline (date)", hint: "When is your fair?", placeholder: "e.g. 2026-03-15", required: true },
@@ -748,25 +673,23 @@
     { key: "equipmentAccess", type: "checkbox", label: "What equipment/lab access do you have?", hint: "Select all that apply.", required: true, options: ["Home only", "School lab", "Mentor/university lab access", "None yet"] },
     { key: "experience", type: "dropdown", label: "Prior science fair experience?", hint: "", required: true, options: ["Choose an option", "None", "Participated once", "Won awards at school/regional level", "National/international experience"] },
     { key: "team", type: "radio", label: "Are you working solo or with a partner/team?", hint: "", required: true, options: ["Solo", "Partner", "Team (3+)"] },
-    { key: "budget", type: "dropdown", label: "Budget constraints?", hint: "", required: false, options: ["Choose an option", "No budget", "Under $50", "$50–$200", "$200+"] },
+    { key: "budget", type: "dropdown", label: "Budget constraints?", hint: "", required: false, options: ["Choose an option", "No budget", "Under $50", "$50-$200", "$200+"] },
     { key: "unsureAbout", type: "textarea", label: "What are you most unsure about?", hint: "e.g. experimental design, data analysis, presentation.", placeholder: "I'm not sure how to control variables...", required: true },
   ];
 
-  // 3. OLYMPIAD
   const olympiadQuestions = [
-    { key: "olympiads", type: "checkbox", label: "Which olympiad(s) are you preparing for?", hint: "Select all that apply.", required: true, options: ["Math — AMC/AIME/Olympiad-level (e.g. INMO/IMO track)", "Physics — e.g. IPhO track", "Chemistry — e.g. IChO track", "Biology — e.g. IBO track", "Informatics/Coding — e.g. IOI/USACO track", "Other/unsure"] },
+    { key: "olympiads", type: "checkbox", label: "Which olympiad(s) are you preparing for?", hint: "Select all that apply.", required: true, options: ["Math - AMC/AIME/Olympiad-level (e.g. INMO/IMO track)", "Physics - e.g. IPhO track", "Chemistry - e.g. IChO track", "Biology - e.g. IBO track", "Informatics/Coding - e.g. IOI/USACO track", "Other/unsure"] },
     { key: "currentLevel", type: "dropdown", label: "Current level in that subject", hint: "", required: true, options: ["Choose an option", "Beginner / just starting", "Competent at school level", "Already medals at local competitions", "Training for national team"] },
     { key: "targetDate", type: "text", inputType: "date", label: "Target competition date", hint: "When is the exam?", placeholder: "e.g. 2026-05-20", required: true },
-    { key: "hoursPerWeek", type: "dropdown", label: "Hours available per week for preparation", hint: "", required: true, options: ["Choose an option", "Under 5", "5–10", "10–20", "20+"] },
+    { key: "hoursPerWeek", type: "dropdown", label: "Hours available per week for preparation", hint: "", required: true, options: ["Choose an option", "Under 5", "5-10", "10-20", "20+"] },
     { key: "learningStyle", type: "radio", label: "Preferred learning style", hint: "", required: true, options: ["Reading books/papers", "Watching lectures/videos", "Solving problems", "Discussing with others"] },
     { key: "pastScores", type: "text", label: "Past scores/results (if any)", hint: "Optional", placeholder: "e.g. AMC 12 score 90", required: false },
     { key: "coach", type: "radio", label: "Access to a coach/mentor/team?", hint: "", required: true, options: ["Yes", "No"] },
     { key: "weakArea", type: "textarea", label: "Biggest weak area", hint: "What do you find most challenging?", placeholder: "e.g. geometry proofs, organic chemistry mechanisms...", required: true },
   ];
 
-  // 4. PORTFOLIO
   const portfolioQuestions = [
-    { key: "existingWork", type: "checkbox", label: "What do you already have?", hint: "Select all that apply.", required: true, options: ["Open-source code/GitHub repos", "A research paper/pre-print", "Competition results", "A personal project", "Internship/lab experience", "None yet — starting from scratch"] },
+    { key: "existingWork", type: "checkbox", label: "What do you already have?", hint: "Select all that apply.", required: true, options: ["Open-source code/GitHub repos", "A research paper/pre-print", "Competition results", "A personal project", "Internship/lab experience", "None yet - starting from scratch"] },
     { key: "targetUniversities", type: "text", label: "Target universities/programs", hint: "Comma separated is fine.", placeholder: "e.g. MIT, Cambridge, Stanford", required: true },
     { key: "intendedMajor", type: "text", label: "Intended major/field", hint: "", placeholder: "e.g. Computer Science, Physics", required: true },
     { key: "strongestThing", type: "textarea", label: "What's the single strongest thing you've built or done?", hint: "Be specific.", placeholder: "e.g. I built a web app for local farmers that predicts crop yield...", required: true },
@@ -775,40 +698,36 @@
     { key: "approach", type: "radio", label: "Do you want to add something new or just better present what exists?", hint: "", required: true, options: ["Add something new", "Better present what I have", "Both"] },
   ];
 
-  // 5. DEBATE
   const debateQuestions = [
     { key: "format", type: "dropdown", label: "Debate format", hint: "", required: true, options: ["Choose an option", "World Schools", "Lincoln-Douglas", "Public Forum", "Policy", "British Parliamentary", "Other"] },
     { key: "resolution", type: "textarea", label: "The exact resolution/topic", hint: "Required", placeholder: "e.g. This house believes that...", required: true },
-    { key: "side", type: "dropdown", label: "Side you need to argue", hint: "", required: true, options: ["Choose an option", "Proposition/Affirmative", "Opposition/Negative", "Both — need to prep for either"] },
+    { key: "side", type: "dropdown", label: "Side you need to argue", hint: "", required: true, options: ["Choose an option", "Proposition/Affirmative", "Opposition/Negative", "Both - need to prep for either"] },
     { key: "tournamentDate", type: "text", inputType: "date", label: "Tournament date", hint: "", placeholder: "e.g. 2026-04-10", required: true },
     { key: "experience", type: "dropdown", label: "Experience level", hint: "", required: true, options: ["Choose an option", "Beginner", "Intermediate", "Advanced"] },
-    { key: "hoursAvailable", type: "dropdown", label: "Hours available to prep", hint: "", required: true, options: ["Choose an option", "Under 5", "5–10", "10–20", "20+"] },
+    { key: "hoursAvailable", type: "dropdown", label: "Hours available to prep", hint: "", required: true, options: ["Choose an option", "Under 5", "5-10", "10-20", "20+"] },
     { key: "existingMaterials", type: "checkbox", label: "What do you already have?", hint: "Select all that apply.", required: false, options: ["Nothing yet", "Some research", "A partial case", "Cards/evidence collected"] },
   ];
 
-  // 6. PROJECT BUILDER
   const projectQuestions = [
     { key: "idea", type: "textarea", label: "What do you want to build?", hint: "Required", placeholder: "e.g. A mobile app for language learning...", required: true },
     { key: "audience", type: "textarea", label: "Who is it for / what problem does it solve?", hint: "", placeholder: "e.g. For students who want to learn vocabulary on the go...", required: true },
     { key: "skillLevel", type: "dropdown", label: "Your current technical skill level", hint: "", required: true, options: ["Choose an option", "Beginner", "Intermediate", "Advanced"] },
     { key: "techStack", type: "text", label: "Preferred tech stack (if any)", hint: "Optional", placeholder: "e.g. React, Node.js, MongoDB", required: false },
-    { key: "timePerWeek", type: "dropdown", label: "Time available per week", hint: "", required: true, options: ["Choose an option", "Under 3", "3–6", "6–10", "10+"] },
+    { key: "timePerWeek", type: "dropdown", label: "Time available per week", hint: "", required: true, options: ["Choose an option", "Under 3", "3-6", "6-10", "10+"] },
     { key: "targetLaunch", type: "text", inputType: "date", label: "Target launch/demo date (if any)", hint: "Optional", placeholder: "e.g. 2026-08-01", required: false },
     { key: "teamSize", type: "radio", label: "Solo or with a team?", hint: "", required: true, options: ["Solo", "Team"] },
   ];
 
-  // 7. LEARNING PLANNER
   const learningQuestions = [
     { key: "subject", type: "textarea", label: "What are you trying to learn?", hint: "Required", placeholder: "e.g. Calculus BC, Real Analysis, specific textbook title", required: true },
     { key: "textbook", type: "text", label: "Do you have a specific textbook/course already chosen?", hint: "Optional", placeholder: "e.g. Stewart Calculus", required: false },
     { key: "currentLevel", type: "dropdown", label: "Current level in the subject", hint: "", required: true, options: ["Choose an option", "Beginner", "Intermediate", "Advanced"] },
     { key: "reason", type: "dropdown", label: "Why are you learning this?", hint: "", required: true, options: ["Choose an option", "School requirement", "Exam prep", "Personal interest", "Prerequisite for research/olympiad", "Other"] },
     { key: "targetDate", type: "text", inputType: "date", label: "Target date (exam date, deadline, or none)", hint: "Optional", placeholder: "e.g. 2026-06-01", required: false },
-    { key: "hoursPerWeek", type: "dropdown", label: "Hours available per week", hint: "", required: true, options: ["Choose an option", "Under 3", "3–6", "6–10", "10+"] },
+    { key: "hoursPerWeek", type: "dropdown", label: "Hours available per week", hint: "", required: true, options: ["Choose an option", "Under 3", "3-6", "6-10", "10+"] },
     { key: "learningStyle", type: "radio", label: "Preferred learning style", hint: "", required: true, options: ["Reading", "Watching videos", "Solving problems", "Discussing"] },
   ];
 
-  // 8. PAPER REVIEWER (different: includes a large textarea for manuscript)
   const paperQuestions = [
     { key: "field", type: "text", label: "Field/subject area", hint: "e.g. Computer Science, Biology", placeholder: "e.g. Machine Learning", required: true },
     { key: "venue", type: "text", label: "Target venue (if any)", hint: "e.g. Journal, conference, class assignment", placeholder: "e.g. NeurIPS, school science fair", required: false },
@@ -816,7 +735,6 @@
     { key: "feedbackFocus", type: "checkbox", label: "What kind of feedback do you want most?", hint: "Select all that apply.", required: true, options: ["Methodology", "Writing clarity", "Statistics/results", "Citations", "All of the above"] },
   ];
 
-  // 9. CAREER EXPLORER
   const careerQuestions = [
     { key: "fields", type: "text", label: "Field(s) of interest", hint: "e.g. Physics, Computer Science", placeholder: "e.g. Astrophysics, AI", required: true },
     { key: "stage", type: "dropdown", label: "Current academic stage", hint: "", required: true, options: ["Choose an option", "High school", "Undergraduate", "Graduate", "Other"] },
@@ -825,23 +743,6 @@
     { key: "timeHorizon", type: "dropdown", label: "Time horizon", hint: "", required: true, options: ["Choose an option", "This summer", "Next year", "Several years out"] },
   ];
 
-  // ---------------------------------------------------------
-  // REGISTER NAVIGATORS
-  // ---------------------------------------------------------
-
-  // Helper to create a generic renderer for a specific schema
-  function makeRenderReport(schemaMap) {
-    return function(data, titleEl, leadEl, gridEl) {
-      // Example: schemaMap = { titleKey: 'projectTitle', leadKey: 'hypothesisStatement', ... }
-      // We'll use a generic approach: display fields in order, with grids and full-width cards.
-      // But we can customise per navigator.
-      // For simplicity, we'll use a generic render that maps fields to cards.
-      // However, we'll provide specific renderers for each to match the prompts' desired layout.
-      // We'll implement per-navigator render functions in the config.
-    };
-  }
-
-  // Research Navigator (existing)
   createNavigator({
     key: "research",
     questions: researchQuestions,
@@ -880,13 +781,10 @@
       { text: "Step 4 of 4: Finalizing true north report layout...", pct: 98 },
     ],
     renderReport: function(data, titleEl, leadEl, gridEl) {
-      // Use existing renderRoadmapReport logic (we'll copy from old script)
-      // We'll define it below as a global function.
       renderResearchReport(data, titleEl, leadEl, gridEl);
     },
   });
 
-  // Science Fair
   createNavigator({
     key: "sciencefair",
     questions: scienceFairQuestions,
@@ -927,7 +825,6 @@
     renderReport: renderScienceFairReport,
   });
 
-  // Olympiad
   createNavigator({
     key: "olympiad",
     questions: olympiadQuestions,
@@ -968,7 +865,6 @@
     renderReport: renderOlympiadReport,
   });
 
-  // Portfolio
   createNavigator({
     key: "portfolio",
     questions: portfolioQuestions,
@@ -1009,7 +905,6 @@
     renderReport: renderPortfolioReport,
   });
 
-  // Debate
   createNavigator({
     key: "debate",
     questions: debateQuestions,
@@ -1050,7 +945,6 @@
     renderReport: renderDebateReport,
   });
 
-  // Project Builder
   createNavigator({
     key: "project",
     questions: projectQuestions,
@@ -1091,7 +985,6 @@
     renderReport: renderProjectReport,
   });
 
-  // Learning Planner
   createNavigator({
     key: "learning",
     questions: learningQuestions,
@@ -1132,7 +1025,6 @@
     renderReport: renderLearningReport,
   });
 
-  // Paper Reviewer
   createNavigator({
     key: "paper",
     questions: paperQuestions,
@@ -1173,7 +1065,6 @@
     renderReport: renderPaperReport,
   });
 
-  // Journal (special)
   createNavigator({
     key: "journal",
     isJournal: true,
@@ -1194,7 +1085,6 @@
     journalSummaryClose: "#journal-summary-close",
   });
 
-  // Career Explorer
   createNavigator({
     key: "career",
     questions: careerQuestions,
@@ -1235,12 +1125,7 @@
     renderReport: renderCareerReport,
   });
 
-  // ---------------------------------------------------------
-  // REPORT RENDERERS (reusable helper functions)
-  // ---------------------------------------------------------
-
-  // Generic card creators (matching existing style)
-  function createGridCard(title, innerHTML, icon = "✦", collapsible = true) {
+  function createGridCard(title, innerHTML, icon = "*", collapsible = true) {
     const card = document.createElement("div");
     card.className = "roadmap-card";
     card.innerHTML = `
@@ -1269,7 +1154,7 @@
     return card;
   }
 
-  function createFullWidthCard(title, innerHTML, icon = "✦", collapsible = true) {
+  function createFullWidthCard(title, innerHTML, icon = "*", collapsible = true) {
     const card = document.createElement("div");
     card.className = "roadmap-card full-width";
     card.innerHTML = `
@@ -1298,32 +1183,28 @@
     return card;
   }
 
-  // Research Report (existing logic adapted)
   function renderResearchReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = `Path to True North: ${data.recommendedField || data.recommendedResearchArea || "Your Research Journey"}`;
     leadEl.textContent = data.researchVision || "Your tailored roadmap.";
     gridEl.innerHTML = "";
 
-    // Recommended Field
     const fieldVal = data.recommendedField || data.recommendedResearchArea || "Not specified";
     gridEl.appendChild(createFullWidthCard(
       "Recommended Field of Inquiry",
       `<p style="font-size: 1.25rem; color: var(--gold-bright); font-family: var(--font-display); font-weight: 500; margin-bottom: 12px; border-left: 2px solid var(--gold); padding-left: 12px;">${fieldVal}</p>
        <p style="margin-top: 10px;">${data.researchVision || ""}</p>`,
-      "✦", false
+      "*", false
     ));
 
-    // Possible Research Questions
     const qs = data.possibleResearchQuestions || data.possibleExperiments || [];
     if (qs.length) {
       const html = qs.map(q => {
         const text = typeof q === 'object' ? (q.title || q.description) : q;
         return `<li style="margin-bottom: 12px; border-bottom: 1px solid rgba(247, 245, 240, 0.03); padding-bottom: 8px;"><strong style="color: var(--paper);">${text}</strong></li>`;
       }).join("");
-      gridEl.appendChild(createGridCard("Possible Research Questions", `<ol style="padding-left: 18px; margin-top: 4px;">${html}</ol>`, "❓"));
+      gridEl.appendChild(createGridCard("Possible Research Questions", `<ol style="padding-left: 18px; margin-top: 4px;">${html}</ol>`, "*"));
     }
 
-    // Background Reading
     const reading = data.backgroundReading || data.suggestedReadingList || [];
     if (reading.length) {
       const html = reading.map(book => `
@@ -1333,16 +1214,14 @@
           <p style="margin: 6px 0 0; font-size: 0.9rem; color: rgba(247, 245, 240, 0.7);">${book.description}</p>
         </li>
       `).join("");
-      gridEl.appendChild(createGridCard("Suggested Background Reading", `<ul style="padding-left: 0;">${html}</ul>`, "📖"));
+      gridEl.appendChild(createGridCard("Suggested Background Reading", `<ul style="padding-left: 0;">${html}</ul>`, "*"));
     }
 
-    // Skills
     if (data.skillsToLearn && data.skillsToLearn.length) {
       const html = data.skillsToLearn.map(s => `<li>${s}</li>`).join("");
-      gridEl.appendChild(createGridCard("Skills To Learn", `<ul class="roadmap-card-mono-list">${html}</ul>`, "🛠️"));
+      gridEl.appendChild(createGridCard("Skills To Learn", `<ul class="roadmap-card-mono-list">${html}</ul>`, "*"));
     }
 
-    // Weekly Roadmap
     const weeks = data.weeklyRoadmap || data.weeklyPlan || [];
     if (weeks.length) {
       const html = weeks.map(w => `
@@ -1354,10 +1233,9 @@
           </ul>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Weekly Roadmap (4-Week Plan)", html, "📅"));
+      gridEl.appendChild(createFullWidthCard("Weekly Roadmap (4-Week Plan)", html, "*"));
     }
 
-    // Software Tools
     const tools = data.softwareTools || data.recommendedSoftware || [];
     if (tools.length) {
       const html = tools.map(t => `
@@ -1366,10 +1244,9 @@
           <span style="color: rgba(247, 245, 240, 0.7); font-size: 0.9rem; display: block; margin-top: 2px;">${t.purpose}</span>
         </li>
       `).join("");
-      gridEl.appendChild(createGridCard("Recommended Software & Tools", `<ul style="padding-left: 0;">${html}</ul>`, "💻"));
+      gridEl.appendChild(createGridCard("Recommended Software & Tools", `<ul style="padding-left: 0;">${html}</ul>`, "*"));
     }
 
-    // Experiments
     const exps = data.experimentIdeas || data.possibleExperiments || [];
     if (exps.length) {
       const html = exps.map(e => `
@@ -1378,16 +1255,14 @@
           <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247, 245, 240, 0.7);">${e.description}</p>
         </li>
       `).join("");
-      gridEl.appendChild(createGridCard("Possible Experiments & Methodology", `<ul style="padding-left: 0;">${html}</ul>`, "🔬"));
+      gridEl.appendChild(createGridCard("Possible Experiments & Methodology", `<ul style="padding-left: 0;">${html}</ul>`, "*"));
     }
 
-    // Publication Checklist
     if (data.publicationChecklist && data.publicationChecklist.length) {
-      const html = data.publicationChecklist.map(i => `<li style="margin-bottom: 8px;">✔️ ${i}</li>`).join("");
-      gridEl.appendChild(createGridCard("Publication Prep Checklist", `<ul style="list-style: none; padding-left: 0; font-size: 0.92rem;">${html}</ul>`, "📝"));
+      const html = data.publicationChecklist.map(i => `<li style="margin-bottom: 8px;">- ${i}</li>`).join("");
+      gridEl.appendChild(createGridCard("Publication Prep Checklist", `<ul style="list-style: none; padding-left: 0; font-size: 0.92rem;">${html}</ul>`, "*"));
     }
 
-    // Competitions
     const comps = data.competitions || data.potentialCompetitions || [];
     if (comps.length) {
       const html = comps.map(c => `
@@ -1396,16 +1271,14 @@
           <p style="margin: 4px 0 0; font-size: 0.88rem; color: rgba(247, 245, 240, 0.65);">${c.suitability}</p>
         </li>
       `).join("");
-      gridEl.appendChild(createGridCard("Potential Competitions & Programs", `<ul style="padding-left: 0;">${html}</ul>`, "🏆"));
+      gridEl.appendChild(createGridCard("Potential Competitions & Programs", `<ul style="padding-left: 0;">${html}</ul>`, "*"));
     }
 
-    // Common Mistakes
     if (data.commonMistakes && data.commonMistakes.length) {
       const html = data.commonMistakes.map(i => `<li>${i}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Pitfalls & Mistakes", `<ul style="padding-left: 20px; color: #F0A08D;">${html}</ul>`, "⚠️"));
+      gridEl.appendChild(createGridCard("Common Pitfalls & Mistakes", `<ul style="padding-left: 20px; color: #F0A08D;">${html}</ul>`, "*"));
     }
 
-    // Next Three Actions
     if (data.nextThreeActions && data.nextThreeActions.length) {
       const html = data.nextThreeActions.map((a, i) => `
         <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
@@ -1413,216 +1286,191 @@
           <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Your Next Three Actions", html, "🚀", false));
+      gridEl.appendChild(createFullWidthCard("Your Next Three Actions", html, "*", false));
     }
   }
 
-  // Science Fair Report
   function renderScienceFairReport(data, titleEl, leadEl, gridEl) {
-  titleEl.textContent = data.projectTitle || "Science Fair Project";
-  leadEl.textContent = data.hypothesisStatement || "Hypothesis statement.";
-  gridEl.innerHTML = "";
+    titleEl.textContent = data.projectTitle || "Science Fair Project";
+    leadEl.textContent = data.hypothesisStatement || "Hypothesis statement.";
+    gridEl.innerHTML = "";
 
-  // Hypothesis
-  gridEl.appendChild(createFullWidthCard(
-    "Hypothesis",
-    `<p style="font-size: 1.1rem; font-weight: 500; color: var(--gold-bright);">${data.hypothesisStatement || "Not provided"}</p>`,
-    "✺", false
-  ));
+    gridEl.appendChild(createFullWidthCard(
+      "Hypothesis",
+      `<p style="font-size: 1.1rem; font-weight: 500; color: var(--gold-bright);">${data.hypothesisStatement || "Not provided"}</p>`,
+      "*", false
+    ));
 
-  // Variables
-  const iv = data.independentVariable || "Not specified";
-  const dv = data.dependentVariable || "Not specified";
-  const cv = data.controlledVariables || [];
-  const varsHtml = `
-    <p><strong>Independent Variable:</strong> ${iv}</p>
-    <p><strong>Dependent Variable:</strong> ${dv}</p>
-    ${cv.length ? `<p><strong>Controlled Variables:</strong> ${cv.join(', ')}</p>` : ''}
-  `;
-  gridEl.appendChild(createGridCard("Variables", varsHtml, "📊"));
+    const iv = data.independentVariable || "Not specified";
+    const dv = data.dependentVariable || "Not specified";
+    const cv = data.controlledVariables || [];
+    const varsHtml = `
+      <p><strong>Independent Variable:</strong> ${iv}</p>
+      <p><strong>Dependent Variable:</strong> ${dv}</p>
+      ${cv.length ? `<p><strong>Controlled Variables:</strong> ${cv.join(', ')}</p>` : ''}
+    `;
+    gridEl.appendChild(createGridCard("Variables", varsHtml, "*"));
 
-  // Experimental Design
-  const design = data.experimentalDesign || [];
-  if (design.length) {
-    const html = design.map(step => `
-      <li style="margin-bottom: 8px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
-        <strong>${step.title}</strong> — ${step.description}
-      </li>
-    `).join("");
-    gridEl.appendChild(createGridCard("Experimental Design", `<ul style="padding-left: 0;">${html}</ul>`, "🔬"));
+    const design = data.experimentalDesign || [];
+    if (design.length) {
+      const html = design.map(step => `
+        <li style="margin-bottom: 8px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
+          <strong>${step.title}</strong> - ${step.description}
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Experimental Design", `<ul style="padding-left: 0;">${html}</ul>`, "*"));
+    }
+
+    const mats = data.materialsAndEquipment || [];
+    if (mats.length) {
+      const html = mats.map(m => `
+        <li style="margin-bottom: 8px; list-style: none;">
+          <strong>${m.name}</strong> - ${m.purpose} (${m.whereToGet || ''})
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Materials & Equipment", `<ul style="padding-left: 0;">${html}</ul>`, "*"));
+    }
+
+    if (data.dataCollectionPlan) {
+      gridEl.appendChild(createGridCard("Data Collection Plan", `<p>${data.dataCollectionPlan}</p>`, "*"));
+    }
+
+    if (data.validationAndControls && data.validationAndControls.length) {
+      const html = data.validationAndControls.map(v => `<li>${v}</li>`).join("");
+      gridEl.appendChild(createGridCard("Validation & Controls", `<ul>${html}</ul>`, "*"));
+    }
+
+    const board = data.displayBoardOutline || [];
+    if (board.length) {
+      const html = board.map(s => `<li><strong>${s.title}</strong> - ${s.description}</li>`).join("");
+      gridEl.appendChild(createGridCard("Display Board Outline", `<ul>${html}</ul>`, "*"));
+    }
+
+    const timeline = data.timelineToFairDate || [];
+    if (timeline.length) {
+      const html = timeline.map(t => `
+        <div style="margin-bottom: 10px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.milestone}</strong> - ${t.targetDate || t.weekLabel || ''}
+          <ul style="margin: 4px 0 0 16px;">${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Timeline to Fair Date", html, "*"));
+    }
+
+    if (data.judgingPrepChecklist && data.judgingPrepChecklist.length) {
+      const html = data.judgingPrepChecklist.map(j => `<li>${j}</li>`).join("");
+      gridEl.appendChild(createGridCard("Judging Prep Checklist", `<ul>${html}</ul>`, "*"));
+    }
+
+    if (data.commonPitfalls && data.commonPitfalls.length) {
+      const html = data.commonPitfalls.map(p => `<li>${p}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Pitfalls", `<ul>${html}</ul>`, "*"));
+    }
+
+    const fairs = data.suitableFairs || [];
+    if (fairs.length) {
+      const html = fairs.map(f => `<li><strong>${f.name}</strong> - ${f.suitability}</li>`).join("");
+      gridEl.appendChild(createGridCard("Suitable Fairs", `<ul>${html}</ul>`, "*"));
+    }
   }
 
-  // Materials
-  const mats = data.materialsAndEquipment || [];
-  if (mats.length) {
-    const html = mats.map(m => `
-      <li style="margin-bottom: 8px; list-style: none;">
-        <strong>${m.name}</strong> — ${m.purpose} (${m.whereToGet || ''})
-      </li>
-    `).join("");
-    gridEl.appendChild(createGridCard("Materials & Equipment", `<ul style="padding-left: 0;">${html}</ul>`, "🛠️"));
+  function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.targetOlympiad || "Olympiad Preparation";
+    leadEl.textContent = data.currentLevelAssessment || "Assessment.";
+    gridEl.innerHTML = "";
+
+    const syllabus = data.syllabusBreakdown || [];
+    if (syllabus.length) {
+      const html = syllabus.map(s => `
+        <li style="margin-bottom: 6px;"><strong>${s.topic}</strong> - ${s.priority} - ${s.whyItMatters}</li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Syllabus Breakdown", `<ul>${html}</ul>`, "*"));
+    }
+
+    const res = data.resourceList || [];
+    if (res.length) {
+      const html = res.map(r => `
+        <li style="margin-bottom: 8px; list-style: none; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+          <strong style="display: block;">${r.title}</strong>
+          <span style="font-size: 0.85rem; color: var(--gold-bright);">${r.author}</span>
+          <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">${r.description}</p>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Resource List", `<ul style="padding-left: 0;">${html}</ul>`, "*"));
+    }
+
+    const weeks = data.weeklySchedule || [];
+    if (weeks.length) {
+      const html = weeks.map(w => `
+        <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
+          <p style="margin: 4px 0;">Focus: ${w.focus}</p>
+          <ul style="margin: 0 0 0 16px;">${w.tasks ? w.tasks.map(t => `<li>${t}</li>`).join('') : ''}</ul>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "*"));
+    }
+
+    const sets = data.practiceProblemSets || [];
+    if (sets.length) {
+      const html = sets.map(s => `<li><strong>${s.source}</strong> - ${s.description}</li>`).join("");
+      gridEl.appendChild(createGridCard("Practice Problem Sets", `<ul>${html}</ul>`, "*"));
+    }
+
+    if (data.mockTestPlan) {
+      gridEl.appendChild(createGridCard("Mock Test Plan", `<p>${data.mockTestPlan}</p>`, "*"));
+    }
+
+    if (data.commonMistakes && data.commonMistakes.length) {
+      const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "*"));
+    }
+
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "*", false));
+    }
   }
 
-  // Data Collection
-  if (data.dataCollectionPlan) {
-    gridEl.appendChild(createGridCard("Data Collection Plan", `<p>${data.dataCollectionPlan}</p>`, "📈"));
-  }
-
-  // Validation & Controls
-  if (data.validationAndControls && data.validationAndControls.length) {
-    const html = data.validationAndControls.map(v => `<li>${v}</li>`).join("");
-    gridEl.appendChild(createGridCard("Validation & Controls", `<ul>${html}</ul>`, "✅"));
-  }
-
-  // Display Board Outline
-  const board = data.displayBoardOutline || [];
-  if (board.length) {
-    const html = board.map(s => `<li><strong>${s.title}</strong> — ${s.description}</li>`).join("");
-    gridEl.appendChild(createGridCard("Display Board Outline", `<ul>${html}</ul>`, "🖼️"));
-  }
-
-  // Timeline
-  const timeline = data.timelineToFairDate || [];
-  if (timeline.length) {
-    const html = timeline.map(t => `
-      <div style="margin-bottom: 10px;">
-        <strong style="font-family: var(--font-mono); color: var(--gold-bright);">${t.milestone}</strong> — ${t.targetDate || t.weekLabel || ''}
-        <ul style="margin: 4px 0 0 16px;">${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
-      </div>
-    `).join("");
-    gridEl.appendChild(createFullWidthCard("Timeline to Fair Date", html, "📅"));
-  }
-
-  // Judging Prep
-  if (data.judgingPrepChecklist && data.judgingPrepChecklist.length) {
-    const html = data.judgingPrepChecklist.map(j => `<li>${j}</li>`).join("");
-    gridEl.appendChild(createGridCard("Judging Prep Checklist", `<ul>${html}</ul>`, "👨‍⚖️"));
-  }
-
-  // Common Pitfalls
-  if (data.commonPitfalls && data.commonPitfalls.length) {
-    const html = data.commonPitfalls.map(p => `<li>${p}</li>`).join("");
-    gridEl.appendChild(createGridCard("Common Pitfalls", `<ul>${html}</ul>`, "⚠️"));
-  }
-
-  // Suitable Fairs – FIXED LINE
-  const fairs = data.suitableFairs || [];
-  if (fairs.length) {
-    const html = fairs.map(f => `<li><strong>${f.name}</strong> — ${f.suitability}</li>`).join("");
-    gridEl.appendChild(createGridCard("Suitable Fairs", `<ul>${html}</ul>`, "🏆"));
-  }
-}
-function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
-  titleEl.textContent = data.targetOlympiad || "Olympiad Preparation";
-  leadEl.textContent = data.currentLevelAssessment || "Assessment.";
-  gridEl.innerHTML = "";
-
-  // Syllabus
-  const syllabus = data.syllabusBreakdown || [];
-  if (syllabus.length) {
-    const html = syllabus.map(s => `
-      <li style="margin-bottom: 6px;"><strong>${s.topic}</strong> — ${s.priority} — ${s.whyItMatters}</li>
-    `).join("");
-    gridEl.appendChild(createGridCard("Syllabus Breakdown", `<ul>${html}</ul>`, "📘"));
-  }
-
-  // Resources
-  const res = data.resourceList || [];
-  if (res.length) {
-    const html = res.map(r => `
-      <li style="margin-bottom: 8px; list-style: none; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
-        <strong style="display: block;">${r.title}</strong>
-        <span style="font-size: 0.85rem; color: var(--gold-bright);">${r.author}</span>
-        <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">${r.description}</p>
-      </li>
-    `).join("");
-    gridEl.appendChild(createGridCard("Resource List", `<ul style="padding-left: 0;">${html}</ul>`, "📚"));
-  }
-
-  // Weekly Schedule
-  const weeks = data.weeklySchedule || [];
-  if (weeks.length) {
-    const html = weeks.map(w => `
-      <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
-        <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
-        <p style="margin: 4px 0;">Focus: ${w.focus}</p>
-        <ul style="margin: 0 0 0 16px;">${w.tasks ? w.tasks.map(t => `<li>${t}</li>`).join('') : ''}</ul>
-      </div>
-    `).join("");
-    gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
-  }
-
-  // Practice Problem Sets – FIXED (backticks, proper icon)
-  const sets = data.practiceProblemSets || [];
-  if (sets.length) {
-    const html = sets.map(s => `<li><strong>${s.source}</strong> — ${s.description}</li>`).join("");
-    gridEl.appendChild(createGridCard("Practice Problem Sets", `<ul>${html}</ul>`, "📝"));
-  }
-
-  // Mock Test Plan – FIXED (backticks, proper icon)
-  if (data.mockTestPlan) {
-    gridEl.appendChild(createGridCard("Mock Test Plan", `<p>${data.mockTestPlan}</p>`, "📋"));
-  }
-
-  // Common Mistakes
-  if (data.commonMistakes && data.commonMistakes.length) {
-    const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
-    gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
-  }
-
-  // Next Three Actions
-  if (data.nextThreeActions && data.nextThreeActions.length) {
-    const html = data.nextThreeActions.map((a, i) => `
-      <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
-        <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
-        <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
-      </div>
-    `).join("");
-    gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
-  }
-}
-  // Portfolio Report
   function renderPortfolioReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = "Portfolio Narrative";
     leadEl.textContent = data.portfolioNarrative || "Your story.";
     gridEl.innerHTML = "";
 
-    // Narrative
-    gridEl.appendChild(createFullWidthCard("Through‑Line Story", `<p>${data.portfolioNarrative || "Not provided."}</p>`, "🎓", false));
+    gridEl.appendChild(createFullWidthCard("Through-Line Story", `<p>${data.portfolioNarrative || "Not provided."}</p>`, "*", false));
 
-    // Strengths
     if (data.strengthsIdentified && data.strengthsIdentified.length) {
       const html = data.strengthsIdentified.map(s => `<li>${s}</li>`).join("");
-      gridEl.appendChild(createGridCard("Strengths Identified", `<ul>${html}</ul>`, "✅"));
+      gridEl.appendChild(createGridCard("Strengths Identified", `<ul>${html}</ul>`, "*"));
     }
 
-    // Gaps
     if (data.gapsToAddress && data.gapsToAddress.length) {
       const html = data.gapsToAddress.map(g => `<li>${g}</li>`).join("");
-      gridEl.appendChild(createGridCard("Gaps to Address", `<ul>${html}</ul>`, "🔍"));
+      gridEl.appendChild(createGridCard("Gaps to Address", `<ul>${html}</ul>`, "*"));
     }
 
-    // Recommended Additions
     const adds = data.recommendedAdditions || [];
     if (adds.length) {
-      const html = adds.map(a => `<li><strong>${a.title}</strong> — ${a.description} (Effort: ${a.effortLevel})</li>`).join("");
-      gridEl.appendChild(createGridCard("Recommended Additions", `<ul>${html}</ul>`, "📌"));
+      const html = adds.map(a => `<li><strong>${a.title}</strong> - ${a.description} (Effort: ${a.effortLevel})</li>`).join("");
+      gridEl.appendChild(createGridCard("Recommended Additions", `<ul>${html}</ul>`, "*"));
     }
 
-    // How to Present Existing
     const pres = data.howToPresentExisting || [];
     if (pres.length) {
-      const html = pres.map(p => `<li><strong>${p.item}</strong> — ${p.howToFrameIt}</li>`).join("");
-      gridEl.appendChild(createGridCard("How to Present Existing Work", `<ul>${html}</ul>`, "🖼️"));
+      const html = pres.map(p => `<li><strong>${p.item}</strong> - ${p.howToFrameIt}</li>`).join("");
+      gridEl.appendChild(createGridCard("How to Present Existing Work", `<ul>${html}</ul>`, "*"));
     }
 
-    // Essay Angles
     if (data.essayAngleSuggestions && data.essayAngleSuggestions.length) {
       const html = data.essayAngleSuggestions.map(e => `<li>${e}</li>`).join("");
-      gridEl.appendChild(createGridCard("Essay Angle Suggestions", `<ul>${html}</ul>`, "✍️"));
+      gridEl.appendChild(createGridCard("Essay Angle Suggestions", `<ul>${html}</ul>`, "*"));
     }
 
-    // Timeline
     const timeline = data.timeline || [];
     if (timeline.length) {
       const html = timeline.map(t => `
@@ -1631,16 +1479,14 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <ul>${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Timeline", html, "📅"));
+      gridEl.appendChild(createFullWidthCard("Timeline", html, "*"));
     }
 
-    // Red Flags
     if (data.redFlagsToAvoid && data.redFlagsToAvoid.length) {
       const html = data.redFlagsToAvoid.map(r => `<li>${r}</li>`).join("");
-      gridEl.appendChild(createGridCard("Red Flags to Avoid", `<ul>${html}</ul>`, "🚩"));
+      gridEl.appendChild(createGridCard("Red Flags to Avoid", `<ul>${html}</ul>`, "*"));
     }
 
-    // Next Three Actions
     if (data.nextThreeActions && data.nextThreeActions.length) {
       const html = data.nextThreeActions.map((a, i) => `
         <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
@@ -1648,20 +1494,17 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "*", false));
     }
   }
 
-  // Debate Report
   function renderDebateReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = data.resolutionAnalysis || "Resolution Analysis";
     leadEl.textContent = "Case framework.";
     gridEl.innerHTML = "";
 
-    // Resolution Analysis
-    gridEl.appendChild(createFullWidthCard("Resolution Analysis", `<p>${data.resolutionAnalysis || "Not provided."}</p>`, "🗣️", false));
+    gridEl.appendChild(createFullWidthCard("Resolution Analysis", `<p>${data.resolutionAnalysis || "Not provided."}</p>`, "*", false));
 
-    // Case Framework
     const framework = data.caseFramework || [];
     if (framework.length) {
       const html = framework.map(c => `
@@ -1672,36 +1515,31 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <p><strong>Impact:</strong> ${c.impact}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Case Framework", html, "📋"));
+      gridEl.appendChild(createFullWidthCard("Case Framework", html, "*"));
     }
 
-    // Evidence to Find
     const ev = data.evidenceToFind || [];
     if (ev.length) {
-      const html = ev.map(e => `<li><strong>${e.claimItSupports}</strong> — ${e.whatKindOfSourceToLookFor}</li>`).join("");
-      gridEl.appendChild(createGridCard("Evidence to Find", `<ul>${html}</ul>`, "🔎"));
+      const html = ev.map(e => `<li><strong>${e.claimItSupports}</strong> - ${e.whatKindOfSourceToLookFor}</li>`).join("");
+      gridEl.appendChild(createGridCard("Evidence to Find", `<ul>${html}</ul>`, "*"));
     }
 
-    // Anticipated Opposing Arguments
     const opp = data.anticipatedOpposingArguments || [];
     if (opp.length) {
-      const html = opp.map(o => `<li><strong>${o.argument}</strong> — ${o.howToRespond}</li>`).join("");
-      gridEl.appendChild(createGridCard("Anticipated Opposing Arguments", `<ul>${html}</ul>`, "⚔️"));
+      const html = opp.map(o => `<li><strong>${o.argument}</strong> - ${o.howToRespond}</li>`).join("");
+      gridEl.appendChild(createGridCard("Anticipated Opposing Arguments", `<ul>${html}</ul>`, "*"));
     }
 
-    // Cross-Ex Prep
     if (data.crossExaminationPrep && data.crossExaminationPrep.length) {
       const html = data.crossExaminationPrep.map(c => `<li>${c}</li>`).join("");
-      gridEl.appendChild(createGridCard("Cross‑Examination Prep", `<ul>${html}</ul>`, "❓"));
+      gridEl.appendChild(createGridCard("Cross-Examination Prep", `<ul>${html}</ul>`, "*"));
     }
 
-    // Delivery Tips
     if (data.deliveryTips && data.deliveryTips.length) {
       const html = data.deliveryTips.map(t => `<li>${t}</li>`).join("");
-      gridEl.appendChild(createGridCard("Delivery Tips", `<ul>${html}</ul>`, "🎤"));
+      gridEl.appendChild(createGridCard("Delivery Tips", `<ul>${html}</ul>`, "*"));
     }
 
-    // Prep Timeline
     const timeline = data.prepTimeline || [];
     if (timeline.length) {
       const html = timeline.map(t => `
@@ -1710,16 +1548,14 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <ul>${t.tasks ? t.tasks.map(ta => `<li>${ta}</li>`).join('') : ''}</ul>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Prep Timeline", html, "📅"));
+      gridEl.appendChild(createFullWidthCard("Prep Timeline", html, "*"));
     }
 
-    // Common Mistakes
     if (data.commonMistakes && data.commonMistakes.length) {
       const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
+      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "*"));
     }
 
-    // Next Three Actions
     if (data.nextThreeActions && data.nextThreeActions.length) {
       const html = data.nextThreeActions.map((a, i) => `
         <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
@@ -1727,39 +1563,33 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "*", false));
     }
   }
 
-  // Project Builder Report
   function renderProjectReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = data.projectSummary || "Project Build Plan";
     leadEl.textContent = "Core features overview.";
     gridEl.innerHTML = "";
 
-    // Summary
-    gridEl.appendChild(createFullWidthCard("Project Summary", `<p>${data.projectSummary || "Not provided."}</p>`, "🔧", false));
+    gridEl.appendChild(createFullWidthCard("Project Summary", `<p>${data.projectSummary || "Not provided."}</p>`, "*", false));
 
-    // Core Features
     const features = data.coreFeatureList || [];
     if (features.length) {
-      const html = features.map(f => `<li><strong>${f.feature}</strong> — ${f.priority}</li>`).join("");
-      gridEl.appendChild(createGridCard("Core Features", `<ul>${html}</ul>`, "⚙️"));
+      const html = features.map(f => `<li><strong>${f.feature}</strong> - ${f.priority}</li>`).join("");
+      gridEl.appendChild(createGridCard("Core Features", `<ul>${html}</ul>`, "*"));
     }
 
-    // Tech Stack
     const tech = data.suggestedTechStack || [];
     if (tech.length) {
-      const html = tech.map(t => `<li><strong>${t.layer}</strong> — ${t.tool} (${t.why})</li>`).join("");
-      gridEl.appendChild(createGridCard("Suggested Tech Stack", `<ul>${html}</ul>`, "💻"));
+      const html = tech.map(t => `<li><strong>${t.layer}</strong> - ${t.tool} (${t.why})</li>`).join("");
+      gridEl.appendChild(createGridCard("Suggested Tech Stack", `<ul>${html}</ul>`, "*"));
     }
 
-    // Architecture
     if (data.architectureOverview) {
-      gridEl.appendChild(createGridCard("Architecture Overview", `<p>${data.architectureOverview}</p>`, "🏗️"));
+      gridEl.appendChild(createGridCard("Architecture Overview", `<p>${data.architectureOverview}</p>`, "*"));
     }
 
-    // Milestones
     const milestones = data.milestones || [];
     if (milestones.length) {
       const html = milestones.map(m => `
@@ -1769,33 +1599,28 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <span style="font-size: 0.85rem; color: rgba(247,245,240,0.5);">Estimated: ${m.estimatedWeeks} weeks</span>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Milestones", html, "📋"));
+      gridEl.appendChild(createFullWidthCard("Milestones", html, "*"));
     }
 
-    // Database Schema
     if (data.databaseSchemaSketch && data.databaseSchemaSketch.length) {
-      const html = data.databaseSchemaSketch.map(s => `<li><strong>${s.table}</strong> — ${s.keyFields}</li>`).join("");
-      gridEl.appendChild(createGridCard("Database Schema Sketch", `<ul>${html}</ul>`, "🗄️"));
+      const html = data.databaseSchemaSketch.map(s => `<li><strong>${s.table}</strong> - ${s.keyFields}</li>`).join("");
+      gridEl.appendChild(createGridCard("Database Schema Sketch", `<ul>${html}</ul>`, "*"));
     }
 
-    // Deployment
     if (data.deploymentPlan) {
-      gridEl.appendChild(createGridCard("Deployment Plan", `<p>${data.deploymentPlan}</p>`, "🚀"));
+      gridEl.appendChild(createGridCard("Deployment Plan", `<p>${data.deploymentPlan}</p>`, "*"));
     }
 
-    // Testing Checklist
     if (data.testingChecklist && data.testingChecklist.length) {
       const html = data.testingChecklist.map(t => `<li>${t}</li>`).join("");
-      gridEl.appendChild(createGridCard("Testing Checklist", `<ul>${html}</ul>`, "🧪"));
+      gridEl.appendChild(createGridCard("Testing Checklist", `<ul>${html}</ul>`, "*"));
     }
 
-    // Common Mistakes
     if (data.commonMistakes && data.commonMistakes.length) {
       const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
+      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "*"));
     }
 
-    // Next Three Actions
     if (data.nextThreeActions && data.nextThreeActions.length) {
       const html = data.nextThreeActions.map((a, i) => `
         <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
@@ -1803,34 +1628,29 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "*", false));
     }
   }
 
-  // Learning Planner Report
   function renderLearningReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = data.learningGoalSummary || "Learning Plan";
     leadEl.textContent = data.recommendedResource || "Recommended resource.";
     gridEl.innerHTML = "";
 
-    // Goal
-    gridEl.appendChild(createFullWidthCard("Learning Goal Summary", `<p>${data.learningGoalSummary || "Not provided."}</p>`, "🗓️", false));
+    gridEl.appendChild(createFullWidthCard("Learning Goal Summary", `<p>${data.learningGoalSummary || "Not provided."}</p>`, "*", false));
 
-    // Recommended Resource
     if (data.recommendedResource) {
-      gridEl.appendChild(createGridCard("Recommended Resource", `<p>${data.recommendedResource}</p>`, "📖"));
+      gridEl.appendChild(createGridCard("Recommended Resource", `<p>${data.recommendedResource}</p>`, "*"));
     }
 
-    // Topic Breakdown
     const topics = data.topicBreakdown || [];
     if (topics.length) {
       const html = topics.map(t => `
-        <li style="margin-bottom: 8px;"><strong>${t.topic}</strong> — ${t.whyItMatters} ${t.prerequisiteOf ? `(Prerequisite of: ${t.prerequisiteOf.join(', ')})` : ''}</li>
+        <li style="margin-bottom: 8px;"><strong>${t.topic}</strong> - ${t.whyItMatters} ${t.prerequisiteOf ? `(Prerequisite of: ${t.prerequisiteOf.join(', ')})` : ''}</li>
       `).join("");
-      gridEl.appendChild(createGridCard("Topic Breakdown", `<ul>${html}</ul>`, "📚"));
+      gridEl.appendChild(createGridCard("Topic Breakdown", `<ul>${html}</ul>`, "*"));
     }
 
-    // Weekly Schedule
     const weeks = data.weeklySchedule || [];
     if (weeks.length) {
       const html = weeks.map(w => `
@@ -1840,22 +1660,19 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           ${w.practiceRecommendation ? `<p style="margin: 4px 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">Practice: ${w.practiceRecommendation}</p>` : ''}
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
+      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "*"));
     }
 
-    // Self-Check Milestones
     if (data.selfCheckMilestones && data.selfCheckMilestones.length) {
       const html = data.selfCheckMilestones.map(m => `<li>${m}</li>`).join("");
-      gridEl.appendChild(createGridCard("Self‑Check Milestones", `<ul>${html}</ul>`, "📋"));
+      gridEl.appendChild(createGridCard("Self-Check Milestones", `<ul>${html}</ul>`, "*"));
     }
 
-    // Common Stumbling Blocks
     if (data.commonStumblingBlocks && data.commonStumblingBlocks.length) {
       const html = data.commonStumblingBlocks.map(b => `<li>${b}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Stumbling Blocks", `<ul>${html}</ul>`, "⚠️"));
+      gridEl.appendChild(createGridCard("Common Stumbling Blocks", `<ul>${html}</ul>`, "*"));
     }
 
-    // Next Three Actions
     if (data.nextThreeActions && data.nextThreeActions.length) {
       const html = data.nextThreeActions.map((a, i) => `
         <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
@@ -1863,58 +1680,49 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "*", false));
     }
   }
 
-  // Paper Reviewer Report
   function renderPaperReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = "Paper Review";
     leadEl.textContent = data.overallAssessment || "Overall assessment.";
     gridEl.innerHTML = "";
 
-    // Overall
-    gridEl.appendChild(createFullWidthCard("Overall Assessment", `<p>${data.overallAssessment || "Not provided."}</p>`, "📝", false));
+    gridEl.appendChild(createFullWidthCard("Overall Assessment", `<p>${data.overallAssessment || "Not provided."}</p>`, "*", false));
 
-    // Strengths
     if (data.strengths && data.strengths.length) {
       const html = data.strengths.map(s => `<li>${s}</li>`).join("");
-      gridEl.appendChild(createGridCard("Strengths", `<ul>${html}</ul>`, "✅"));
+      gridEl.appendChild(createGridCard("Strengths", `<ul>${html}</ul>`, "*"));
     }
 
-    // Methodology Issues
     const meth = data.methodologyIssues || [];
     if (meth.length) {
-      const html = meth.map(m => `<li><strong>${m.issue}</strong> — ${m.whyItMatters} (Suggested fix: ${m.suggestedFix})</li>`).join("");
-      gridEl.appendChild(createGridCard("Methodology Issues", `<ul>${html}</ul>`, "🔬"));
+      const html = meth.map(m => `<li><strong>${m.issue}</strong> - ${m.whyItMatters} (Suggested fix: ${m.suggestedFix})</li>`).join("");
+      gridEl.appendChild(createGridCard("Methodology Issues", `<ul>${html}</ul>`, "*"));
     }
 
-    // Clarity Issues
     const clarity = data.clarityIssues || [];
     if (clarity.length) {
-      const html = clarity.map(c => `<li><strong>${c.location}</strong> — ${c.issue} (Fix: ${c.suggestedFix})</li>`).join("");
-      gridEl.appendChild(createGridCard("Clarity Issues", `<ul>${html}</ul>`, "✍️"));
+      const html = clarity.map(c => `<li><strong>${c.location}</strong> - ${c.issue} (Fix: ${c.suggestedFix})</li>`).join("");
+      gridEl.appendChild(createGridCard("Clarity Issues", `<ul>${html}</ul>`, "*"));
     }
 
-    // Statistical Concerns
     if (data.statisticalConcerns && data.statisticalConcerns.length) {
       const html = data.statisticalConcerns.map(s => `<li>${s}</li>`).join("");
-      gridEl.appendChild(createGridCard("Statistical Concerns", `<ul>${html}</ul>`, "📊"));
+      gridEl.appendChild(createGridCard("Statistical Concerns", `<ul>${html}</ul>`, "*"));
     }
 
-    // Citation Concerns
     if (data.citationConcerns && data.citationConcerns.length) {
       const html = data.citationConcerns.map(c => `<li>${c}</li>`).join("");
-      gridEl.appendChild(createGridCard("Citation Concerns", `<ul>${html}</ul>`, "📚"));
+      gridEl.appendChild(createGridCard("Citation Concerns", `<ul>${html}</ul>`, "*"));
     }
 
-    // Revision Priority
     if (data.revisionPriorityOrder && data.revisionPriorityOrder.length) {
       const html = data.revisionPriorityOrder.map(r => `<li>${r}</li>`).join("");
-      gridEl.appendChild(createGridCard("Revision Priority Order", `<ul>${html}</ul>`, "📌"));
+      gridEl.appendChild(createGridCard("Revision Priority Order", `<ul>${html}</ul>`, "*"));
     }
 
-    // Next Three Actions
     if (data.nextThreeActions && data.nextThreeActions.length) {
       const html = data.nextThreeActions.map((a, i) => `
         <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
@@ -1922,47 +1730,40 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "*", false));
     }
   }
 
-  // Career Explorer Report
   function renderCareerReport(data, titleEl, leadEl, gridEl) {
     titleEl.textContent = data.fieldOverview || "Career Exploration";
     leadEl.textContent = "Specialization options.";
     gridEl.innerHTML = "";
 
-    // Field Overview
-    gridEl.appendChild(createFullWidthCard("Field Overview", `<p>${data.fieldOverview || "Not provided."}</p>`, "🧭", false));
+    gridEl.appendChild(createFullWidthCard("Field Overview", `<p>${data.fieldOverview || "Not provided."}</p>`, "*", false));
 
-    // Specialization Options
     const specs = data.specializationOptions || [];
     if (specs.length) {
       const html = specs.map(s => `
-        <li style="margin-bottom: 8px;"><strong>${s.name}</strong> — ${s.description} (${s.whatItInvolves})</li>
+        <li style="margin-bottom: 8px;"><strong>${s.name}</strong> - ${s.description} (${s.whatItInvolves})</li>
       `).join("");
-      gridEl.appendChild(createGridCard("Specialization Options", `<ul>${html}</ul>`, "🔍"));
+      gridEl.appendChild(createGridCard("Specialization Options", `<ul>${html}</ul>`, "*"));
     }
 
-    // How to Find Labs
     if (data.howToFindLabs && data.howToFindLabs.length) {
       const html = data.howToFindLabs.map(h => `<li>${h}</li>`).join("");
-      gridEl.appendChild(createGridCard("How to Find Labs", `<ul>${html}</ul>`, "🔬"));
+      gridEl.appendChild(createGridCard("How to Find Labs", `<ul>${html}</ul>`, "*"));
     }
 
-    // Internship Program Types
     const progs = data.internshipProgramTypes || [];
     if (progs.length) {
-      const html = progs.map(p => `<li><strong>${p.type}</strong> — ${p.description} (Timeline: ${p.typicalTimeline})</li>`).join("");
-      gridEl.appendChild(createGridCard("Internship Program Types", `<ul>${html}</ul>`, "💼"));
+      const html = progs.map(p => `<li><strong>${p.type}</strong> - ${p.description} (Timeline: ${p.typicalTimeline})</li>`).join("");
+      gridEl.appendChild(createGridCard("Internship Program Types", `<ul>${html}</ul>`, "*"));
     }
 
-    // Grad School Path
     if (data.gradSchoolPathOverview) {
-      gridEl.appendChild(createGridCard("Grad School Path Overview", `<p>${data.gradSchoolPathOverview}</p>`, "🎓"));
+      gridEl.appendChild(createGridCard("Grad School Path Overview", `<p>${data.gradSchoolPathOverview}</p>`, "*"));
     }
 
-    // Next Three Actions
     if (data.nextThreeActions && data.nextThreeActions.length) {
       const html = data.nextThreeActions.map((a, i) => `
         <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
@@ -1970,7 +1771,7 @@ function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
           <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
         </div>
       `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "*", false));
     }
   }
 
