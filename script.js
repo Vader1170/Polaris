@@ -44,7 +44,108 @@ function updateAuthUI(user) {
     });
   }
 }
+async function showHistory() {
+  if (!currentUser) return;
+  try {
+    const token = await currentUser.getIdToken();
+    const resp = await fetch("/api/history", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!resp.ok) throw new Error("Failed to fetch history");
+    const items = await resp.json();
+    const overlay = document.createElement("div");
+    overlay.id = "history-overlay";
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); z-index: 9999;
+      display: flex; justify-content: center; align-items: center;
+      padding: 20px;
+    `;
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+    const panel = document.createElement("div");
+    panel.style.cssText = `
+      background: var(--navy-900); max-width: 600px; width: 100%;
+      border-radius: 8px; padding: 24px; max-height: 80vh; overflow-y: auto;
+      border: 1px solid var(--gold);
+    `;
+    let html = `<h3 style="font-family: var(--font-display); margin-bottom: 16px;">Your Roadmaps</h3>`;
+    if (items.length === 0) {
+      html += `<p style="color: rgba(247,245,240,0.6);">No saved roadmaps yet. Generate one and it will appear here.</p>`;
+    } else {
+      html += `<ul style="list-style: none; padding: 0;">`;
+      items.forEach(item => {
+        const date = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Unknown date";
+        const label = item.summary || item.navigatorType || "Roadmap";
+        html += `
+          <li style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+            <button class="btn btn-ghost history-item-btn" data-id="${item.id}" style="width: 100%; text-align: left; padding: 8px; font-size: 0.95rem;">
+              <strong>${label}</strong> <span style="color: rgba(247,245,240,0.5); font-size: 0.85rem;">${date}</span>
+            </button>
+          </li>
+        `;
+      });
+      html += `</ul>`;
+    }
+    html += `<button class="btn btn-ghost" id="history-close-btn" style="margin-top: 16px;">Close</button>`;
+    panel.innerHTML = html;
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
 
+    panel.querySelectorAll(".history-item-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        await loadRoadmapById(id);
+        overlay.remove();
+      });
+    });
+    document.getElementById("history-close-btn").addEventListener("click", () => overlay.remove());
+  } catch (err) {
+    console.error("History error:", err);
+    alert("Could not load history.");
+  }
+}
+
+async function loadRoadmapById(id) {
+  if (!currentUser) return;
+  try {
+    const token = await currentUser.getIdToken();
+    const resp = await fetch(`/api/history/${id}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!resp.ok) throw new Error("Failed to load roadmap");
+    const data = await resp.json();
+    const navName = data.navigatorType || "research";
+    showNavigator(navName);
+    const nav = NAVIGATORS[navName];
+    if (nav) {
+      const section = document.querySelector(`.navigator[data-navigator="${navName}"]`);
+      if (section) {
+        const grid = section.querySelector(nav.reportGridSelector);
+        const titleEl = section.querySelector(nav.reportTitleSelector);
+        const leadEl = section.querySelector(nav.reportLeadSelector);
+        if (grid && titleEl && leadEl && nav.renderReport) {
+          // Hide other views
+          const intro = section.querySelector(".navigator-intro");
+          const form = section.querySelector(".navigator-form");
+          const complete = section.querySelector(".navigator-complete");
+          const loading = section.querySelector(".navigator-loading");
+          const report = section.querySelector(".roadmap-container");
+          if (intro) intro.hidden = true;
+          if (form) form.hidden = true;
+          if (complete) complete.hidden = true;
+          if (loading) loading.hidden = true;
+          if (report) report.hidden = false;
+          nav.renderReport(data.roadmap, titleEl, leadEl, grid);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error loading roadmap:", err);
+    alert("Could not load the roadmap.");
+  }
+}
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
