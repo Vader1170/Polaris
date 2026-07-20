@@ -1512,8 +1512,7 @@
     gridEl.appendChild(createGridCard("Suitable Fairs", `<ul>${html}</ul>`, "🏆"));
   }
 }
-  // Olympiad Report
-  function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
+function renderOlympiadReport(data, titleEl, leadEl, gridEl) {
   titleEl.textContent = data.targetOlympiad || "Olympiad Preparation";
   leadEl.textContent = data.currentLevelAssessment || "Assessment.";
   gridEl.innerHTML = "";
@@ -1553,14 +1552,14 @@
     gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
   }
 
-  // Practice Problem Sets – CORRECTED
+  // Practice Problem Sets – FIXED (backticks, proper icon)
   const sets = data.practiceProblemSets || [];
   if (sets.length) {
     const html = sets.map(s => `<li><strong>${s.source}</strong> — ${s.description}</li>`).join("");
     gridEl.appendChild(createGridCard("Practice Problem Sets", `<ul>${html}</ul>`, "📝"));
   }
 
-  // Mock Test Plan – CORRECTED
+  // Mock Test Plan – FIXED (backticks, proper icon)
   if (data.mockTestPlan) {
     gridEl.appendChild(createGridCard("Mock Test Plan", `<p>${data.mockTestPlan}</p>`, "📋"));
   }
