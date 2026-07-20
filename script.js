@@ -1347,7 +1347,8 @@
     }
     return card;
   }
-
+console.log("auth container:", document.getElementById("auth-container"));
+updateAuthUI(null); // force render sign-in button
   // ── Report renderers (unchanged, omitted for brevity) ────────────
   // (All the renderResearchReport, renderScienceFairReport, ... functions
   //  remain exactly as they were – they are long but unchanged.)
