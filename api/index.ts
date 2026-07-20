@@ -10,28 +10,59 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
+// Quick debug middleware for generate endpoints
+app.use("/api/generate-", (req, res, next) => {
+  try {
+    console.log("[DEBUG] /api/generate-* request", {
+      path: req.path,
+      hasAuthHeader: !!req.headers.authorization,
+      OPENROUTER_KEY_EXISTS: !!process.env.OPENROUTER_API_KEY,
+    });
+  } catch (e) {
+    console.error("[DEBUG] logging error", e);
+  }
+  next();
+});
+
 // ── Firebase Admin Initialisation ──────────────────────────────
 const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 
+let db: any = null;
+
 if (firebaseProjectId && firebasePrivateKey && firebaseClientEmail) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: firebaseProjectId,
-      privateKey: firebasePrivateKey,
-      clientEmail: firebaseClientEmail,
-    }),
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: firebaseProjectId,
+        privateKey: firebasePrivateKey,
+        clientEmail: firebaseClientEmail,
+      }),
+    });
+    if (admin.apps && admin.apps.length > 0) {
+      db = admin.firestore();
+      console.log("Firebase Admin initialized. Firestore is available.");
+    } else {
+      console.warn("Firebase Admin not available after initializeApp().");
+    }
+  } catch (err) {
+    console.error("Failed to initialize Firebase Admin:", err);
+    db = null;
+  }
 } else {
   console.warn("Firebase Admin credentials missing. Auth and Firestore will be disabled.");
+  db = null;
 }
-
-const db = admin.firestore();
 
 // ── Middleware: verify Firebase ID token ────────────────────────
 async function verifyFirebaseToken(req: any, res: any, next: any) {
   const authHeader = req.headers.authorization;
+  // If Firebase Admin is not initialized, skip verification and treat as unauthenticated
+  if (!admin.apps || admin.apps.length === 0) {
+    req.user = null;
+    return next();
+  }
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     req.user = null;
     return next();
@@ -129,18 +160,18 @@ const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-oss-20b:fre
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // ── Base system instruction ──────────────────────────────────────
-const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) while maintaining the highest academic standards.
+const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-[...]
 
 When a student shares their interests and constraints, you must:
-1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do not write as if they know linear algebra, PDEs, or graduate-level notation.
-2. Every time you introduce a technical term, acronym, or piece of jargon (e.g. "PINN," "Navier-Stokes," "surrogate model"), immediately follow it with a short plain-English gloss in parentheses or the same sentence, written so a bright student at their stated level understands it without looking anything up. Never stack multiple unexplained jargon terms in a row.
-3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools (e.g., Python, LaTeX/Overleaf, Jupyter, R, Pandas, PyTorch, QGIS) — but only real, correctly-attributed works you are confident exist. If you are not certain of an exact title or author, recommend a well-known standard reference in the field instead of inventing one.
+1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do not w[...]
+2. Every time you introduce a technical term, acronym, or piece of jargon (e.g. "PINN," "Navier-Stokes," "surrogate model"), immediately follow it with a short plain-English gloss in parentheses or th[...]
+3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools (e.g., Python, LaTeX/Overleaf, Jupyter, R, Pandas, PyTorch, QGIS[...]
 4. Write only in English. Never insert stray characters, words, or script from other languages/alphabets anywhere in the output.
 5. Do not formulate questions or experiments that are unrealistic (e.g., do not suggest wet-lab CRISPR editing or supercomputer modeling if they only have a standard laptop and no school lab).
-6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actually follow given point 1 and 2 above.
+6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actua[...]
 7. You must respond with ONLY a single valid JSON object matching the structure given by the user. Do not wrap it in markdown code fences. Do not include any text before or after the JSON.`;
 
-// ── Firestore stats functions ────────────────────────────────────
+// ── Firestore stats functions ───────────────────────────────────
 async function incrementUsageStats(type: string) {
   if (!db) return;
   try {
@@ -225,7 +256,7 @@ function createGenerateEndpoint(
             roadmap: parsedData,
             answers: answers,
             navigatorType: statsKey,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: FieldValue.serverTimestamp(),
           };
           await db.collection("users").doc(uid).collection("roadmaps").add(roadmapData);
         } catch (err) {
@@ -266,7 +297,7 @@ createGenerateEndpoint(
     const formatted = Object.entries(answers)
       .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
       .join("\n");
-    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tailored scientific roadmap for them.`;
+    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tai[...]
   },
   "research"
 );
@@ -407,7 +438,7 @@ app.post("/api/summarize-journal", async (req, res) => {
       `Entry ${i+1}: Date: ${e.date}, Work: ${e.work}, Blockers: ${e.blockers || 'None'}, Next: ${e.next || 'None'}`
     ).join("\n");
 
-    const userPrompt = `Here are the student's recent journal entries:\n${entriesText}\n\nSummarise the period, assess momentum, identify recurring blockers, and suggest next steps. Respond with JSON matching the schema.`;
+    const userPrompt = `Here are the student's recent journal entries:\n${entriesText}\n\nSummarise the period, assess momentum, identify recurring blockers, and suggest next steps. Respond with [...]
     const systemInstruction = baseSystemInstruction + `\n\nRespond with a JSON object matching this schema:
     {
       "periodSummary": string,
