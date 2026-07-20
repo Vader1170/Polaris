@@ -26,33 +26,6 @@
   }
   initAuthListener();
 
-  function updateAuthUI(user) {
-    const container = document.getElementById("auth-container");
-    if (!container) return;
-    if (user) {
-      container.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <img src="${user.photoURL || ''}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%;">
-          <span style="font-weight: 500;">${user.displayName || 'User'}</span>
-          <button class="btn btn-ghost" id="sign-out-btn" style="font-size: 0.8rem; padding: 4px 12px;">Sign Out</button>
-          <button class="btn btn-ghost" id="history-btn" style="font-size: 0.8rem; padding: 4px 12px;">History</button>
-        </div>
-      `;
-      document.getElementById("sign-out-btn")?.addEventListener("click", () => {
-        if (window.signOut && window.firebaseAuth) window.signOut(window.firebaseAuth);
-      });
-      document.getElementById("history-btn")?.addEventListener("click", showHistory);
-    } else {
-      container.innerHTML = `
-        <button class="btn btn-primary" id="sign-in-btn" style="background: var(--paper); color: var(--navy-950);">Sign in with Google</button>
-      `;
-      document.getElementById("sign-in-btn")?.addEventListener("click", () => {
-        if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) return;
-        const provider = new window.GoogleAuthProvider();
-        window.signInWithPopup(window.firebaseAuth, provider);
-      });
-    }
-  }
 function updateAuthUI(user) {
     const container = document.getElementById("auth-container");
     if (!container) return;
@@ -83,26 +56,24 @@ function updateAuthUI(user) {
 
   // ── Sign-in incentive banners ──────────────────────────────────────
 
-function showSigninBanner(container, message) {
- if (!container || currentUser) return;
- if (container.querySelector(".signin-banner")) return;
+  function showSigninBanner(container, message) {
+    if (!container || currentUser) return;
+    if (container.querySelector(".signin-banner")) return;
 
- const banner = document.createElement("div");
- banner.className = "signin-banner";
- banner.innerHTML = `
-   <p>${message}</p>
-   <button type="button" class="btn banner-signin-btn">Sign in with Google</button>
- `;
- banner.querySelector(".banner-signin-btn").addEventListener("click", () => {
-   if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) return;
-   const provider = new window.GoogleAuthProvider();
-   window.signInWithPopup(window.firebaseAuth, provider);
- });
- container.insertBefore(banner, container.firstChild);
-}
+    const banner = document.createElement("div");
+    banner.className = "signin-banner";
+    banner.innerHTML = `
+      <p>${message}</p>
+      <button type="button" class="btn banner-signin-btn">Sign in with Google</button>
+    `;
+    banner.querySelector(".banner-signin-btn").addEventListener("click", () => {
+      if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) return;
+      const provider = new window.GoogleAuthProvider();
+      window.signInWithPopup(window.firebaseAuth, provider);
+    });
+    container.insertBefore(banner, container.firstChild);
+  }
 
-  async function showHistory() {
-    ...
   async function showHistory() {
     if (!currentUser) return;
     try {
