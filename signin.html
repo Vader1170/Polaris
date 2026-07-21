@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — Polaris</title>
+<meta name="description" content="Sign in to Polaris with Google to save your roadmaps and pick up where you left off.">
+
+<!-- Google Fonts: Cormorant Garamond (display serif), Inter (body), Space Mono (labels/data) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<style>
+  .signin-split {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .signin-dark-panel {
+    position: relative;
+    background: radial-gradient(ellipse at 50% -10%, var(--navy-800), var(--navy-950) 70%);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .signin-dark-panel .hero-sky { position: absolute; inset: 0; }
+  .signin-dark-panel .logo {
+    position: relative;
+    z-index: 1;
+    color: var(--paper);
+    font-size: 1.4rem;
+  }
+  .signin-form-panel {
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .signin-form-inner {
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+  }
+  .signin-form-inner .logo-mark {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 20px;
+  }
+  .signin-heading {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+  .signin-sub {
+    color: var(--muted);
+    font-size: 0.98rem;
+    line-height: 1.6;
+    margin: 0 0 32px;
+  }
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 13px 20px;
+    background: #fff;
+    border: 1px solid #DADCE0;
+    border-radius: 8px;
+    color: #3C4043;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .google-btn:hover {
+    box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+    border-color: #C6C6C6;
+  }
+  .signin-guest-link {
+    display: inline-block;
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 0.88rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .signin-guest-link:hover { color: var(--ink); }
+  .signin-error {
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-top: 14px;
+    min-height: 1.2em;
+  }
+
+  @media (max-width: 800px) {
+    .signin-split { grid-template-columns: 1fr; }
+    .signin-dark-panel { min-height: 180px; padding: 24px 0; }
+    .signin-form-panel { padding: 40px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="signin-split">
+
+  <!-- Dark decorative panel -->
+  <div class="signin-dark-panel" aria-hidden="true">
+    <div class="hero-sky">
+      <div class="star-field"></div>
+      <div class="polaris-star"></div>
+    </div>
+    <a href="/" class="logo">
+      <span class="logo-mark" aria-hidden="true">✦</span>
+      <span class="logo-word">Polaris</span>
+    </a>
+  </div>
+
+  <!-- Sign-in form panel -->
+  <div class="signin-form-panel">
+    <div class="signin-form-inner">
+      <span class="logo-mark" aria-hidden="true">✦</span>
+      <h1 class="signin-heading">Sign in to continue</h1>
+      <p class="signin-sub">Sign in with Google to save your roadmaps and pick up where you left off.</p>
+
+      <button type="button" class="google-btn" id="google-signin-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.91c1.7-1.57 2.69-3.88 2.69-6.64z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.27c-.81.54-1.84.86-3.05.86-2.35 0-4.34-1.58-5.05-3.71H.96v2.34C2.44 15.98 5.48 18 9 18z"/>
+          <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.17.27-1.7V4.96H.96A9 9 0 000 9c0 1.45.35 2.83.96 4.04l2.99-2.34z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l2.99 2.34C4.66 5.16 6.65 3.58 9 3.58z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <p class="signin-error" id="signin-error"></p>
+
+      <a href="/navigator" class="signin-guest-link" id="guest-link">Continue without saving your progress →</a>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyApM_d2eQOI1HzvSQaA-HdLjSs7aIZezzE",
+    authDomain: "polaris-6bb4a.firebaseapp.com",
+    projectId: "polaris-6bb4a",
+    storageBucket: "polaris-6bb4a.firebasestorage.app",
+    messagingSenderId: "803112836370",
+    appId: "1:803112836370:web:c3764f8676e915acb6e7cb",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.signOut = signOut;
+  window.onAuthStateChanged = onAuthStateChanged;
+  window.signInWithPopup = signInWithPopup;
+  window.GoogleAuthProvider = GoogleAuthProvider;
+
+  const errorEl = document.getElementById("signin-error");
+
+  document.getElementById("google-signin-btn").addEventListener("click", async () => {
+    errorEl.textContent = "";
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      window.location.href = "/navigator";
+    } catch (err) {
+      console.error("Sign-in error:", err);
+      errorEl.textContent = "Couldn't sign in. Please try again.";
+    }
+  });
+
+  document.getElementById("guest-link").addEventListener("click", () => {
+    sessionStorage.setItem("polaris-guest", "true");
+  });
+</script>
+</body>
+</html>
