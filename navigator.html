@@ -6,13 +6,18 @@
 <title>Navigator — Polaris Operating System</title>
 <meta name="description" content="Polaris platform dashboard. Access the Research Navigator and other high-level academic building tools.">
 
-<!-- Google Fonts: Fraunces (display serif), Inter (body), JetBrains Mono (labels/data) -->
+<!-- Google Fonts: Cormorant Garamond (display serif), Inter (body), Space Mono (labels/data) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
 <style>
+  .dashboard-header-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+  }
   /* Dashboard specific styling */
   .dashboard-section {
     padding: 60px 0 100px;
@@ -129,15 +134,10 @@
         <span class="logo-word">Polaris</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
-        <a href="/" class="nav-link">Home</a>
-        <a href="/mission" class="nav-link">Mission</a>
-        <a href="/principles" class="nav-link">Principles</a>
-        <a href="/how-it-works" class="nav-link">How It Works</a>
-        <a href="/story" class="nav-link">Our Story</a>
+        <a href="/about" class="nav-link">About</a>
         <a href="/navigator" class="nav-link nav-cta active">Navigator</a>
       </nav>
     </div>
-    <div id="auth-container" style="display: flex; align-items: center;"></div>
   </div>
 </header>
 
@@ -148,6 +148,9 @@
   <!-- ============================= -->
   <section class="dashboard-section" id="dashboard-view">
     <div class="container">
+      <div class="dashboard-header-bar">
+        <div id="auth-container" style="display: flex; align-items: center;"></div>
+      </div>
       <div class="dashboard-header">
         <p class="section-eyebrow">Academic Dashboard</p>
         <h1 style="font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3rem); font-weight: 500; margin-bottom: 16px; color: var(--paper);">The Student Operating System</h1>
