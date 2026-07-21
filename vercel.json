@@ -1,8 +1,7 @@
 {
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/about", "destination": "/about.html" },
-    { "source": "/about", "destination": "/about.html" },
     { "source": "/api/(.*)", "destination": "/api" }
   ]
 }
