@@ -225,7 +225,9 @@ select:focus-visible {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 128px;
+  justify-content: space-between;
+  width: 100%;
+  flex: 1;
 }
 .site-nav {
   display: flex;
@@ -1012,6 +1014,19 @@ select:focus-visible {
 @media (max-width: 600px) {
   .question-slide { padding: 28px 20px; }
   .question-label { font-size: 1.2rem; }
+}
+
+.hiw-tile {
+  transition: background 0.2s var(--ease);
+}
+.hiw-tile:hover {
+  background: var(--paper-dim) !important;
+}
+@media (max-width: 720px) {
+  #how-polaris-works > .container > div[style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
 }
 
 /* =========================================================
