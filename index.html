@@ -9,7 +9,7 @@
 <!-- Google Fonts: Cormorant Garamond (display serif), Inter (body), Space Mono (labels/data) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Fraunces:ital,opsz,wght@1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
 </head>
@@ -65,128 +65,116 @@
   <!-- ============================= -->
   <!-- SECTION 2: WHO IS IT FOR?     -->
   <!-- ============================= -->
-  <section id="who-it-is-for" style="padding: 100px 0; background: var(--paper); border-bottom: 1px solid var(--border);">
-    <div class="container" style="max-width: 800px; text-align: center;">
-      <p class="section-eyebrow" style="font-family: var(--font-mono); color: var(--gold); font-size: 0.85rem; letter-spacing: 0.1em; margin-bottom: 12px;">01. Audience</p>
-      <h2 class="section-title" style="font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 500; margin-bottom: 24px; color: var(--ink);">Who is Polaris for?</h2>
-      <p style="font-size: 1.15rem; color: var(--muted); line-height: 1.7; margin-bottom: 32px;">
-        It is built specifically for curious 14-to-18-year-old students who want to explore deep questions and ambitious projects on their own. Whether you are preparing for a science competition, a humanity monograph, an engineering build, or simply wondering how real scholarly investigation operates, Polaris serves as a reliable guide to help you find your bearings.
+  <!-- ============================= -->
+  <!-- SECTION 2: WHO IT'S FOR       -->
+  <!-- ============================= -->
+  <section id="who-it-is-for" class="reveal">
+    <div class="container audience-wrap">
+      <p class="section-eyebrow" style="text-align: center;">Who this is for</p>
+      <h2 class="flow-title">Fourteen to eighteen, curious, and tired of waiting for permission.</h2>
+      <p class="flow-lead">
+        Maybe you're chasing a science fair placement, a debate resolution, a paper you can't stop thinking about, or an engineering build with no clear first step. Polaris meets you at whichever one it is and gets you moving.
       </p>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; text-align: left; margin-top: 40px;">
-        <div style="background: var(--paper-dim); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--gold); display: block; margin-bottom: 8px;">THE BEGINNER</span>
-          <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 8px; font-weight: 500;">First-Time Inquirers</h3>
-          <p style="font-size: 0.9rem; color: var(--muted); margin: 0; line-height: 1.5;">Learn how to turn a broad interest into a narrow, testable thesis or concrete project goal.</p>
+
+      <div class="audience-row">
+        <div class="audience-card reveal-child">
+          <span class="audience-num">01</span>
+          <h3>Just starting out</h3>
+          <p>Turn a vague interest into a question specific enough to actually work on.</p>
         </div>
-        <div style="background: var(--paper-dim); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--gold); display: block; margin-bottom: 8px;">THE BUILDER</span>
-          <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 8px; font-weight: 500;">Independent Thinkers</h3>
-          <p style="font-size: 0.9rem; color: var(--muted); margin: 0; line-height: 1.5;">Design investigations with robust methodologies, logical frameworks, and rigorous checkpoints.</p>
+        <div class="audience-card reveal-child">
+          <span class="audience-num">02</span>
+          <h3>Building something</h3>
+          <p>Set up a method, run it properly, and know when a result is worth trusting.</p>
         </div>
-        <div style="background: var(--paper-dim); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--gold); display: block; margin-bottom: 8px;">THE APPLICANT</span>
-          <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 8px; font-weight: 500;">Ambitious Minds</h3>
-          <p style="font-size: 0.9rem; color: var(--muted); margin: 0; line-height: 1.5;">Understand academic literature, scholarly standards, and build systems that stand up to professional scrutiny.</p>
+        <div class="audience-card reveal-child">
+          <span class="audience-num">03</span>
+          <h3>Aiming somewhere specific</h3>
+          <p>Read papers like a researcher and put together work that holds up to scrutiny.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ============================= -->
-  <!-- SECTION 3: HOW POLARIS WORKS  -->
+  <!-- SECTION 3: HOW IT WORKS       -->
   <!-- ============================= -->
-  <section id="how-polaris-works" style="padding: 120px 0; background: var(--paper-dim); border-bottom: 1px solid var(--border); overflow: hidden;">
+  <section id="how-polaris-works" class="reveal">
     <div class="container">
-      <div style="max-width: 640px; margin: 0 auto 72px; text-align: center;">
+      <div class="flow-header">
         <p class="section-eyebrow" style="text-align: center;">How it works</p>
-        <h2 style="font-family: var(--font-display); font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 500; line-height: 1.2; margin: 0 0 24px; color: var(--ink);">
-          One tool. Ten kinds of work. A plan built around you.
-        </h2>
-        <p style="font-size: 1.15rem; color: var(--muted); line-height: 1.65; margin: 0;">
-          Polaris turns your interests and constraints into a step-by-step plan — it won't do the work for you, but it will tell you exactly where to start.
+        <h2 class="flow-title">One navigator, ten kinds of work, a plan shaped around yours.</h2>
+        <p class="flow-lead">
+          Tell it what you're building and where you're starting from. It hands back the reading, the schedule, and the next three moves. You do the rest.
         </p>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2px; max-width: 980px; margin: 0 auto 80px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
-        <!-- prettier-ignore -->
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Research</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Science Fair</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Olympiad</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Portfolio</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Debate</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Project</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Learning</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Paper Review</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Journal</span></div>
-        <div class="hiw-tile" style="background: var(--paper); padding: 28px 20px; text-align: center;"><span style="font-family: var(--font-display); font-size: 1.05rem; color: var(--ink);">Career</span></div>
+      <div class="tile-orbit reveal-child">
+        <span class="tile-chip">Research</span>
+        <span class="tile-chip">Science Fair</span>
+        <span class="tile-chip">Olympiad</span>
+        <span class="tile-chip">Portfolio</span>
+        <span class="tile-chip">Debate</span>
+        <span class="tile-chip">Project</span>
+        <span class="tile-chip">Learning</span>
+        <span class="tile-chip">Paper Review</span>
+        <span class="tile-chip">Journal</span>
+        <span class="tile-chip">Career</span>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; max-width: 980px; margin: 0 auto;">
-        <div style="text-align: center;">
-          <p style="font-family: var(--font-display); font-size: 2.4rem; color: var(--gold); margin: 0 0 12px;">01</p>
-          <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; margin: 0 0 10px; color: var(--ink);">Answer a few questions</h3>
-          <p style="color: var(--muted); font-size: 0.98rem; line-height: 1.6; margin: 0;">Pick a navigator, tell it what you're working on and where you're starting from.</p>
+      <div class="steps-row">
+        <div class="steps-item reveal-child">
+          <span class="steps-connector" aria-hidden="true"></span>
+          <p class="steps-index">01</p>
+          <h3>Answer a few questions</h3>
+          <p>Pick a navigator and tell it what you're working on.</p>
         </div>
-        <div style="text-align: center;">
-          <p style="font-family: var(--font-display); font-size: 2.4rem; color: var(--gold); margin: 0 0 12px;">02</p>
-          <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; margin: 0 0 10px; color: var(--ink);">Get a real roadmap</h3>
-          <p style="color: var(--muted); font-size: 0.98rem; line-height: 1.6; margin: 0;">A reading list, a weekly schedule, the right tools, common mistakes, and your next three moves.</p>
+        <div class="steps-item reveal-child">
+          <span class="steps-connector" aria-hidden="true"></span>
+          <p class="steps-index">02</p>
+          <h3>Get a real roadmap</h3>
+          <p>A reading list, a weekly schedule, and the tools that actually apply.</p>
         </div>
-        <div style="text-align: center;">
-          <p style="font-family: var(--font-display); font-size: 2.4rem; color: var(--gold); margin: 0 0 12px;">03</p>
-          <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; margin: 0 0 10px; color: var(--ink);">Do the work yourself</h3>
-          <p style="color: var(--muted); font-size: 0.98rem; line-height: 1.6; margin: 0;">Polaris plans the path. It doesn't write the paper, build the project, or take the test for you.</p>
+        <div class="steps-item reveal-child">
+          <p class="steps-index">03</p>
+          <h3>Do the work yourself</h3>
+          <p>Polaris plans the path. You build, write, test, and argue it.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ============================= -->
-  <!-- SECTION 4: WHAT CAN I DO TODAY? -->
+  <!-- SECTION 4: WHAT TO DO TODAY   -->
   <!-- ============================= -->
-  <section id="what-to-do-today" style="padding: 100px 0; background: var(--paper); border-bottom: 1px solid var(--border);">
+  <section id="what-to-do-today" class="reveal">
     <div class="container">
-      <div style="text-align: center; max-width: 800px; margin: 0 auto 48px;">
-        <p class="section-eyebrow" style="font-family: var(--font-mono); color: var(--gold); font-size: 0.85rem; letter-spacing: 0.1em; margin-bottom: 12px;">03. What To Do Today</p>
-        <h2 class="section-title" style="font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 500; color: var(--ink);">What can I do here today?</h2>
-        <p style="font-size: 1.15rem; color: var(--muted); line-height: 1.7;">
-          Polaris provides interactive tools and structured learning guides to orient your inquiry right away.
-        </p>
+      <div class="flow-header">
+        <p class="section-eyebrow" style="text-align: center;">Start here</p>
+        <h2 class="flow-title">Two doors. Pick one.</h2>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 900px; margin: 0 auto;">
-        
-        <!-- Tool 1 -->
-        <div style="background: #fff; padding: 36px; border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="tool-grid">
+        <div class="tool-card reveal-child">
           <div>
-            <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--gold); display: block; margin-bottom: 12px;">ACTIVE NAVIGATION ENGINE</span>
-            <h3 style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 16px; color: var(--ink);">The Inquiry Navigator</h3>
-            <p style="font-size: 0.98rem; color: var(--muted); line-height: 1.6; margin-bottom: 24px;">
-              Input your raw interests, questions, and background parameters. Our coordinate engine will map a tailored roadmap containing recommended literature, core experiments or projects, required skillsets, and precise weekly timelines.
-            </p>
+            <span class="tool-tag">The tool</span>
+            <h3>The Inquiry Navigator</h3>
+            <p>Answer a short set of questions about your interests and constraints. It maps out reading, methods, skills to pick up, and a week-by-week timeline.</p>
           </div>
-          <a href="/navigator" class="btn btn-primary" style="align-self: flex-start;">Launch Navigator</a>
+          <a href="/navigator" class="btn btn-primary">Launch Navigator</a>
         </div>
 
-        <!-- Tool 2 -->
-        <div style="background: #fff; padding: 36px; border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="tool-card reveal-child">
           <div>
-            <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--gold); display: block; margin-bottom: 12px;">MISSION & STORY</span>
-            <h3 style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 16px; color: var(--ink);">About Polaris</h3>
-            <p style="font-size: 0.98rem; color: var(--muted); line-height: 1.6; margin-bottom: 24px;">
-              Read why we built this, how we think about independent research, and the story behind the project.
-            </p>
+            <span class="tool-tag">The story</span>
+            <h3>About Polaris</h3>
+            <p>Why this exists, how we think about independent work, and who built it.</p>
           </div>
-          <a href="/about" class="btn btn-ghost" style="align-self: flex-start; border-color: var(--ink);">Read About</a>
+          <a href="/about" class="btn btn-ghost">Read About</a>
         </div>
-
       </div>
     </div>
   </section>
-
-  <div style="text-align: center; padding: 48px 0; background: var(--paper-dim);">
-    <a href="/about" class="btn btn-ghost">More about Polaris →</a>
-  </div>
 
 </main>
 
