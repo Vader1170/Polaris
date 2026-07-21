@@ -3,15 +3,26 @@ import path from "path";
 import fs from "fs";
 import * as dotenv from "dotenv";
 import admin from "firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// Quick debug middleware for generate endpoints
-app.use("/api/generate-", (req, res, next) => {
+// Catch anything that would otherwise crash the whole serverless function
+// with no response body (that's what was producing the bare "Server error: 500").
+process.on("unhandledRejection", (reason) => {
+  console.error("[UNHANDLED REJECTION]", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[UNCAUGHT EXCEPTION]", err);
+});
+
+// Quick debug middleware for generate endpoints.
+// NOTE: Express only matches mount paths on full path segments, so
+// app.use("/api/generate-", ...) NEVER matched "/api/generate-roadmap"
+// etc. — it needs a trailing "/" or a wildcard. Fixed below.
+app.use("/api/generate-*", (req, res, next) => {
   try {
     console.log("[DEBUG] /api/generate-* request", {
       path: req.path,
@@ -25,21 +36,30 @@ app.use("/api/generate-", (req, res, next) => {
 });
 
 // ── Firebase Admin Initialisation ──────────────────────────────
+// Wrapped defensively: if anything here throws (bad private key format,
+// Firestore not provisioned on the project yet, etc.) we log it and
+// continue running with db = null instead of taking down every route.
 const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 
 let db: any = null;
 
-if (firebaseProjectId && firebasePrivateKey && firebaseClientEmail) {
+function initFirebase() {
+  if (!firebaseProjectId || !firebasePrivateKey || !firebaseClientEmail) {
+    console.warn("Firebase Admin credentials missing. Auth and Firestore will be disabled.");
+    return;
+  }
   try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: firebaseProjectId,
-        privateKey: firebasePrivateKey,
-        clientEmail: firebaseClientEmail,
-      }),
-    });
+    if (!admin.apps || admin.apps.length === 0) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: firebaseProjectId,
+          privateKey: firebasePrivateKey,
+          clientEmail: firebaseClientEmail,
+        }),
+      });
+    }
     if (admin.apps && admin.apps.length > 0) {
       db = admin.firestore();
       console.log("Firebase Admin initialized. Firestore is available.");
@@ -50,37 +70,41 @@ if (firebaseProjectId && firebasePrivateKey && firebaseClientEmail) {
     console.error("Failed to initialize Firebase Admin:", err);
     db = null;
   }
-} else {
-  console.warn("Firebase Admin credentials missing. Auth and Firestore will be disabled.");
-  db = null;
 }
+initFirebase();
 
 // ── Middleware: verify Firebase ID token ────────────────────────
 async function verifyFirebaseToken(req: any, res: any, next: any) {
-  const authHeader = req.headers.authorization;
-  // If Firebase Admin is not initialized, skip verification and treat as unauthenticated
-  if (!admin.apps || admin.apps.length === 0) {
-    req.user = null;
-    return next();
-  }
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    req.user = null;
-    return next();
-  }
-  const token = authHeader.split(" ")[1];
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    req.user = { uid: decoded.uid };
+    const authHeader = req.headers.authorization;
+    // If Firebase Admin is not initialized, skip verification and treat as unauthenticated
+    if (!admin.apps || admin.apps.length === 0) {
+      req.user = null;
+      return next();
+    }
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      req.user = null;
+      return next();
+    }
+    const token = authHeader.split(" ")[1];
+    try {
+      const decoded = await admin.auth().verifyIdToken(token);
+      req.user = { uid: decoded.uid };
+    } catch (err) {
+      console.error("Token verification failed:", err);
+      req.user = null;
+    }
     next();
   } catch (err) {
-    console.error("Token verification failed:", err);
+    // Never let auth verification crash the request.
+    console.error("verifyFirebaseToken unexpected error:", err);
     req.user = null;
     next();
   }
 }
 
 // ── Apply to all /api/generate-* endpoints ──────────────────────
-app.use("/api/generate-", verifyFirebaseToken);
+app.use("/api/generate-*", verifyFirebaseToken);
 
 // ── Shared helpers ──────────────────────────────────────────────
 function extractJson(text: string): any {
@@ -110,9 +134,6 @@ function extractJson(text: string): any {
 }
 
 function repairJsonBrackets(text: string): string {
-  // Attempt to balance unterminated { or [
-  // This is a simple pass – it only adds missing closing brackets in order,
-  // but does not attempt to fix structural errors.
   const stack: string[] = [];
   let result = "";
   let inString = false;
@@ -140,7 +161,6 @@ function repairJsonBrackets(text: string): string {
       if (stack.length > 0 && stack[stack.length - 1] === ch) {
         stack.pop();
       } else {
-        // Mismatched or extra – discard it (or we could treat as literal)
         continue;
       }
       result += ch;
@@ -148,7 +168,6 @@ function repairJsonBrackets(text: string): string {
     }
     result += ch;
   }
-  // Close any remaining open brackets
   while (stack.length > 0) {
     result += stack.pop();
   }
@@ -160,15 +179,15 @@ const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-oss-20b:fre
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // ── Base system instruction ──────────────────────────────────────
-const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) w[...]
+const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) worldwide.
 
 When a student shares their interests and constraints, you must:
-1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do w[...]
-2. Every time you introduce a technical term, acronym, or piece of jargon (e.g. "PINN," "Navier-Stokes," "surrogate model"), immediately follow it with a short plain-English gloss in parentheses or th[...]
-3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools (e.g., Python, LaTeX/Overleaf, Jupyter, R, Pandas, PyTorch, QGIS[...]
+1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do not reference topics like PDEs, tensor calculus, or advanced linear algebra without a plain-English explanation first.
+2. Every time you introduce a technical term, acronym, or piece of jargon (e.g. "PINN," "Navier-Stokes," "surrogate model"), immediately follow it with a short plain-English gloss in parentheses or the same sentence.
+3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools (e.g., Python, LaTeX/Overleaf, Jupyter, R, Pandas, PyTorch, QGIS) appropriate to their stated skill level.
 4. Write only in English. Never insert stray characters, words, or script from other languages/alphabets anywhere in the output.
 5. Do not formulate questions or experiments that are unrealistic (e.g., do not suggest wet-lab CRISPR editing or supercomputer modeling if they only have a standard laptop and no school lab).
-6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actua[...]
+6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actually understand given their stated background.
 7. You must respond with ONLY a single valid JSON object matching the structure given by the user. Do not wrap it in markdown code fences. Do not include any text before or after the JSON.`;
 
 // ── Firestore stats functions ────────────────────────────────────
@@ -203,41 +222,48 @@ function createGenerateEndpoint(
       }
       const apiKey = process.env.OPENROUTER_API_KEY;
       if (!apiKey) {
-        throw new Error("OPENROUTER_API_KEY environment variable is missing.");
+        console.error(`[${route}] OPENROUTER_API_KEY environment variable is missing.`);
+        return res.status(500).json({ error: "OPENROUTER_API_KEY environment variable is missing on the server." });
       }
 
       const userPrompt = promptBuilder(answers);
       const systemInstruction = baseSystemInstruction + "\n\n" +
         `Respond with a single JSON object matching this schema:\n${schemaDescription}`;
 
-      const openRouterResponse = await fetch(OPENROUTER_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemInstruction },
-            { role: "user", content: userPrompt },
-          ],
-          temperature: 0.75,
-          max_tokens: 4096,
-        }),
-      });
+      let openRouterResponse;
+      try {
+        openRouterResponse = await fetch(OPENROUTER_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemInstruction },
+              { role: "user", content: userPrompt },
+            ],
+            temperature: 0.75,
+            max_tokens: 4096,
+          }),
+        });
+      } catch (fetchErr: any) {
+        console.error(`[${route}] Network error calling OpenRouter:`, fetchErr);
+        return res.status(502).json({ error: "Could not reach the AI provider (network error)." });
+      }
 
       if (!openRouterResponse.ok) {
         const errorBody = await openRouterResponse.text().catch(() => "");
         console.error(`OpenRouter error (${openRouterResponse.status}):`, errorBody);
-        return res.status(500).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
+        return res.status(502).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
       }
 
       const data = await openRouterResponse.json();
       const messageContent = data?.choices?.[0]?.message?.content;
       if (!messageContent || typeof messageContent !== "string") {
         console.error("OpenRouter unexpected payload:", JSON.stringify(data));
-        throw new Error("OpenRouter API returned an empty or malformed response.");
+        return res.status(502).json({ error: "OpenRouter API returned an empty or malformed response." });
       }
 
       let parsedData;
@@ -245,7 +271,7 @@ function createGenerateEndpoint(
         parsedData = extractJson(messageContent);
       } catch (parseErr) {
         console.error("Failed to parse JSON:", messageContent);
-        throw new Error("Failed to parse the AI provider's response as JSON.");
+        return res.status(502).json({ error: "Failed to parse the AI provider's response as JSON." });
       }
 
       // ── Save to Firestore if user is authenticated ──────────
@@ -268,7 +294,7 @@ function createGenerateEndpoint(
       res.json(parsedData);
     } catch (error: any) {
       console.error(`Error in ${route}:`, error);
-      res.status(500).json({ error: error.message || "Failed to generate plan." });
+      res.status(500).json({ error: error?.message || "Failed to generate plan." });
     }
   });
 }
@@ -297,7 +323,7 @@ createGenerateEndpoint(
     const formatted = Object.entries(answers)
       .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
       .join("\n");
-    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tailored[...]
+    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tailored research roadmap for them.`;
   },
   "research"
 );
@@ -432,13 +458,16 @@ app.post("/api/summarize-journal", async (req, res) => {
       return res.status(400).json({ error: "Entries array is required and must not be empty." });
     }
     const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) throw new Error("OPENROUTER_API_KEY missing.");
+    if (!apiKey) {
+      console.error("[/api/summarize-journal] OPENROUTER_API_KEY missing.");
+      return res.status(500).json({ error: "OPENROUTER_API_KEY environment variable is missing on the server." });
+    }
 
     const entriesText = entries.map((e, i) =>
       `Entry ${i+1}: Date: ${e.date}, Work: ${e.work}, Blockers: ${e.blockers || 'None'}, Next: ${e.next || 'None'}`
     ).join("\n");
 
-    const userPrompt = `Here are the student's recent journal entries:\n${entriesText}\n\nSummarise the period, assess momentum, identify recurring blockers, and suggest next steps. Respond with JSON [...]
+    const userPrompt = `Here are the student's recent journal entries:\n${entriesText}\n\nSummarise the period, assess momentum, identify recurring blockers, and suggest next steps. Respond with JSON matching the given schema.`;
     const systemInstruction = baseSystemInstruction + `\n\nRespond with a JSON object matching this schema:
     {
       "periodSummary": string,
@@ -447,33 +476,39 @@ app.post("/api/summarize-journal", async (req, res) => {
       "suggestedNextSteps": string[]
     }`;
 
-    const openRouterResponse = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: systemInstruction },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.6,
-        max_tokens: 4000,
-      }),
-    });
+    let openRouterResponse;
+    try {
+      openRouterResponse = await fetch(OPENROUTER_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.6,
+          max_tokens: 4000,
+        }),
+      });
+    } catch (fetchErr: any) {
+      console.error("Network error calling OpenRouter (journal):", fetchErr);
+      return res.status(502).json({ error: "Could not reach the AI provider (network error)." });
+    }
 
     if (!openRouterResponse.ok) {
       const errorBody = await openRouterResponse.text().catch(() => "");
       console.error(`OpenRouter error (${openRouterResponse.status}):`, errorBody);
-      return res.status(500).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
+      return res.status(502).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
     }
 
     const data = await openRouterResponse.json();
     const messageContent = data?.choices?.[0]?.message?.content;
     if (!messageContent || typeof messageContent !== "string") {
-      throw new Error("OpenRouter returned empty or malformed response.");
+      return res.status(502).json({ error: "OpenRouter returned empty or malformed response." });
     }
 
     let parsedData;
@@ -481,14 +516,14 @@ app.post("/api/summarize-journal", async (req, res) => {
       parsedData = extractJson(messageContent);
     } catch (parseErr) {
       console.error("Failed to parse journal summary JSON:", messageContent);
-      throw new Error("Failed to parse summary JSON.");
+      return res.status(502).json({ error: "Failed to parse summary JSON." });
     }
 
     incrementUsageStats("journal");
     res.json(parsedData);
   } catch (error: any) {
     console.error("Journal summary error:", error);
-    res.status(500).json({ error: error.message || "Failed to generate summary." });
+    res.status(500).json({ error: error?.message || "Failed to generate summary." });
   }
 });
 
@@ -508,7 +543,7 @@ app.get("/api/history", verifyFirebaseToken, async (req: any, res) => {
       .orderBy("createdAt", "desc")
       .get();
     const items: any[] = [];
-    snap.forEach(doc => {
+    snap.forEach((doc: any) => {
       const data = doc.data();
       items.push({
         id: doc.id,
@@ -573,6 +608,17 @@ app.get("/api/stats", async (req, res) => {
     console.error("Error fetching stats:", err);
     res.status(500).json({ error: "Failed to fetch stats." });
   }
+});
+
+// ── Global error handler (must be last) ─────────────────────────
+// Guarantees the client always gets JSON back with an `.error` field,
+// even if something upstream throws synchronously and skips a route's
+// own try/catch. This is what stops a raw, bodyless 500 from reaching
+// the frontend.
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error("[GLOBAL ERROR HANDLER]", err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: err?.message || "Unexpected server error." });
 });
 
 export default app;
