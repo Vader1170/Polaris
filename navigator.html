@@ -6,13 +6,29 @@
 <title>Navigator — Polaris Operating System</title>
 <meta name="description" content="Polaris platform dashboard. Access the Research Navigator and other high-level academic building tools.">
 
-<!-- Google Fonts: Cormorant Garamond (display serif), Inter (body), Space Mono (labels/data) -->
+<!-- Google Fonts: Fraunces (display, rounded), Inter (body), Space Mono (labels/data) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Fraunces:ital,opsz,wght@1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
 <style>
+  /* ============================================================
+     NAVIGATOR-ONLY HEADER — floating logo, no white bar, no nav
+     ============================================================ */
+  .nav-header-minimal {
+    position: absolute;
+    top: 28px;
+    right: 40px;
+    z-index: 5;
+  }
+  .nav-header-minimal .logo {
+    color: var(--paper);
+    font-size: 1.1rem;
+    gap: 8px;
+  }
+  .nav-header-minimal .logo-mark { color: var(--gold-bright); }
+
   .dashboard-header-bar {
     display: flex;
     justify-content: flex-end;
@@ -20,102 +36,113 @@
   }
   /* Dashboard specific styling */
   .dashboard-section {
-    padding: 60px 0 100px;
-    background: var(--navy-950);
+    position: relative;
+    padding: 110px 0 100px;
+    background: radial-gradient(ellipse at 50% -10%, var(--navy-800), var(--navy-950) 70%);
     color: var(--paper);
-    min-height: 80vh;
+    min-height: 100vh;
   }
   .dashboard-header {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 64px;
   }
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 24px;
-    margin-bottom: 50px;
+
+  /* ============================================================
+     MANIFEST — a numbered, rune-indexed list instead of tiles.
+     Each row unfurls a gold coordinate marker on hover, feels
+     like scanning a star chart rather than clicking app icons.
+     ============================================================ */
+  .manifest {
+    max-width: 880px;
+    margin: 0 auto;
+    border-top: 1px solid rgba(247, 245, 240, 0.12);
   }
-  .tool-card {
-    background: var(--navy-900);
-    border: 1px solid var(--border-dark);
-    border-radius: var(--radius-md);
-    padding: 28px;
+  .manifest-row {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.3s var(--ease), border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
-  }
-  .tool-card.active {
-    border-color: rgba(201, 169, 97, 0.3);
-    cursor: pointer;
-  }
-  .tool-card.active:hover {
-    transform: translateY(-4px);
-    border-color: var(--gold);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  }
-  .tool-card.disabled {
-    opacity: 0.65;
-    background: rgba(16, 24, 40, 0.4);
-    border-color: rgba(42, 51, 80, 0.5);
-  }
-  .tool-card-meta {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 96px 1fr auto;
     align-items: center;
-    margin-bottom: 20px;
+    gap: 28px;
+    padding: 26px 20px;
+    border-bottom: 1px solid rgba(247, 245, 240, 0.12);
+    cursor: pointer;
+    overflow: hidden;
+    transition: padding-left 0.35s var(--ease);
   }
-  .tool-icon {
-    font-size: 1.5rem;
-    color: var(--gold);
+  .manifest-row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(201, 169, 97, 0.1), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.35s var(--ease);
+    pointer-events: none;
   }
-  .tool-badge {
+  .manifest-row:hover {
+    padding-left: 32px;
+  }
+  .manifest-row:hover::before { opacity: 1; }
+  .manifest-row:hover .manifest-index { color: var(--gold-bright); border-color: var(--gold-bright); }
+  .manifest-row:hover .manifest-arrow { transform: translateX(6px); opacity: 1; }
+  .manifest-row.disabled { cursor: not-allowed; opacity: 0.45; }
+  .manifest-row.disabled:hover { padding-left: 20px; }
+  .manifest-row.disabled:hover::before { opacity: 0; }
+
+  .manifest-index {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 99px;
-    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+    color: rgba(247, 245, 240, 0.5);
+    border: 1px solid rgba(247, 245, 240, 0.25);
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.35s var(--ease), border-color 0.35s var(--ease);
+    flex-shrink: 0;
   }
-  .tool-badge.badge-active {
-    background: rgba(111, 169, 138, 0.15);
-    color: var(--success);
-    border: 1px solid rgba(111, 169, 138, 0.3);
-  }
-  .tool-badge.badge-soon {
-    background: rgba(228, 198, 127, 0.08);
-    color: var(--gold-bright);
-    border: 1px solid rgba(228, 198, 127, 0.2);
-  }
-  .tool-card-body h3 {
+  .manifest-body h3 {
     font-family: var(--font-display);
     font-size: 1.3rem;
     font-weight: 500;
-    margin: 0 0 10px;
+    margin: 0 0 6px;
     color: var(--paper);
+    letter-spacing: -0.01em;
   }
-  .tool-card-body p {
-    font-size: 0.9rem;
-    color: rgba(247, 245, 240, 0.65);
-    line-height: 1.5;
-    margin: 0 0 24px;
+  .manifest-body p {
+    font-size: 0.94rem;
+    color: rgba(247, 245, 240, 0.7);
+    line-height: 1.55;
+    margin: 0;
+    max-width: 56ch;
   }
-  .tool-action-btn {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: inline-flex;
+  .manifest-meta {
+    display: flex;
     align-items: center;
-    gap: 6px;
-    color: var(--gold-bright);
-    font-weight: 500;
-    margin-top: auto;
+    gap: 18px;
+    flex-shrink: 0;
   }
-  .tool-card.disabled .tool-action-btn {
-    color: rgba(247, 245, 240, 0.3);
-    cursor: not-allowed;
+  .manifest-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-bright);
+    white-space: nowrap;
+  }
+  .manifest-arrow {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    color: var(--gold-bright);
+    opacity: 0;
+    transition: transform 0.35s var(--ease), opacity 0.35s var(--ease);
+  }
+
+  @media (max-width: 700px) {
+    .manifest-row { grid-template-columns: 56px 1fr; }
+    .manifest-meta { grid-column: 2 / 3; margin-top: 8px; }
+    .nav-header-minimal { top: 20px; right: 24px; }
   }
 </style>
 </head>
@@ -124,22 +151,16 @@
 <a class="skip-link" href="#main">Skip to content</a>
 
 <!-- ============================= -->
-<!-- GLOBAL HEADER / NAV           -->
+<!-- MINIMAL FLOATING HEADER       -->
+<!-- (logo only — no nav, no bar,  -->
+<!-- keeps the reader in the zone) -->
 <!-- ============================= -->
-<header class="site-header">
-  <div class="container header-inner">
-    <div class="header-left">
-      <a href="/" class="logo" aria-label="Polaris home">
-        <span class="logo-mark" aria-hidden="true">✦</span>
-        <span class="logo-word">Polaris</span>
-      </a>
-      <nav class="site-nav" aria-label="Primary">
-        <a href="/about" class="nav-link">About</a>
-        <a href="/navigator" class="nav-link nav-cta active">Navigator</a>
-      </nav>
-    </div>
-  </div>
-</header>
+<div class="nav-header-minimal">
+  <a href="/" class="logo" aria-label="Polaris home">
+    <span class="logo-mark" aria-hidden="true">✦</span>
+    <span class="logo-word">Polaris</span>
+  </a>
+</div>
 
 <main id="main">
 
@@ -154,158 +175,128 @@
       <div class="dashboard-header">
         <p class="section-eyebrow">Academic Dashboard</p>
         <h1 style="font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3rem); font-weight: 500; margin-bottom: 16px; color: var(--paper);">The Student Operating System</h1>
-        <p style="color: rgba(247, 245, 240, 0.65); max-width: 600px; margin: 0 auto;">Select an active Polaris compass below. Our interactive navigator is designed to map a clear, structured research path calibrated to your specific starting point, showing you exactly how to navigate from raw interest to a sound proposal.</p>
+        <p style="color: rgba(247, 245, 240, 0.65); max-width: 600px; margin: 0 auto;">Choose a navigator below. Each one maps a clear, structured path calibrated to your starting point, from raw interest to a sound proposal.</p>
       </div>
 
-      <div class="dashboard-grid">
-        
-        <!-- Tool 1: Research Navigator (ACTIVE) -->
-        <div class="tool-card active" data-navigator="research">
-          <div class="tool-card-meta">
-            <span class="tool-icon">✦</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+      <div class="manifest">
+
+        <div class="manifest-row" data-navigator="research" tabindex="0">
+          <span class="manifest-index">01</span>
+          <div class="manifest-body">
             <h3>Research Navigator</h3>
-            <p>Formulate a hyper-customized, high-level scientific research roadmap calibrated strictly to your background, math competency, coding skills, and goals.</p>
+            <p>Formulate a scientific research roadmap calibrated to your background, math level, coding skills, and goals.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 2: Science Fair Navigator -->
-        <div class="tool-card active" data-navigator="sciencefair">
-          <div class="tool-card-meta">
-            <span class="tool-icon">✺</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="sciencefair" tabindex="0">
+          <span class="manifest-index">02</span>
+          <div class="manifest-body">
             <h3>Science Fair Navigator</h3>
-            <p>Structure your scientific hypothesis, validation runs, and display metrics for international high school competitions like ISEF, EUCYS, or state fairs.</p>
+            <p>Structure your hypothesis, validation runs, and display plan for ISEF, EUCYS, or a state fair.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 3: Olympiad Navigator -->
-        <div class="tool-card active" data-navigator="olympiad">
-          <div class="tool-card-meta">
-            <span class="tool-icon">⚗️</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="olympiad" tabindex="0">
+          <span class="manifest-index">03</span>
+          <div class="manifest-body">
             <h3>Olympiad Navigator</h3>
-            <p>Create a strict schedule and resource repository to prepare for national and international olympiads (Physics, Chemistry, Bio, Math, Informatics).</p>
+            <p>Build a dated study schedule and resource list for national and international olympiads.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 4: University Portfolio Navigator -->
-        <div class="tool-card active" data-navigator="portfolio">
-          <div class="tool-card-meta">
-            <span class="tool-icon">🎓</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="portfolio" tabindex="0">
+          <span class="manifest-index">04</span>
+          <div class="manifest-body">
             <h3>University Portfolio</h3>
-            <p>Translate your independent open-source code libraries, mechanical designs, or publication abstracts into compelling portfolio assets for top universities.</p>
+            <p>Turn your projects, code, and writing into a coherent portfolio for top universities.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 5: Debate Navigator -->
-        <div class="tool-card active" data-navigator="debate">
-          <div class="tool-card-meta">
-            <span class="tool-icon">🗣️</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="debate" tabindex="0">
+          <span class="manifest-index">05</span>
+          <div class="manifest-body">
             <h3>Debate Navigator</h3>
-            <p>Formulate logically tight, highly evidentiary case briefs and statistical vectors for competitive World Schools and Lincoln-Douglas debate topics.</p>
+            <p>Build an evidence-backed case brief for World Schools or Lincoln-Douglas topics.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 6: Project Builder -->
-        <div class="tool-card active" data-navigator="project">
-          <div class="tool-card-meta">
-            <span class="tool-icon">🔧</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="project" tabindex="0">
+          <span class="manifest-index">06</span>
+          <div class="manifest-body">
             <h3>Project Builder</h3>
-            <p>Break massive product ideas into modular software micro-milestones, database schemas, and structured deployment sprints.</p>
+            <p>Break a product idea into modular milestones, a tech stack, and a deployment plan.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 7: Learning Planner -->
-        <div class="tool-card active" data-navigator="learning">
-          <div class="tool-card-meta">
-            <span class="tool-icon">🗓️</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="learning" tabindex="0">
+          <span class="manifest-index">07</span>
+          <div class="manifest-body">
             <h3>Learning Planner</h3>
-            <p>Map complex, heavy textbook curricula and mathematical proof modules into robust, highly attainable weekly study programs.</p>
+            <p>Map a textbook or curriculum into an attainable weekly study schedule.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 8: Paper Reviewer -->
-        <div class="tool-card active" data-navigator="paper">
-          <div class="tool-card-meta">
-            <span class="tool-icon">📝</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="paper" tabindex="0">
+          <span class="manifest-index">08</span>
+          <div class="manifest-body">
             <h3>Paper Reviewer</h3>
-            <p>Analyze draft manuscripts or pre-prints for methodology vulnerabilities, sample sizing discrepancies, and citation validity issues.</p>
+            <p>Get structured feedback on methodology, clarity, and citations in a draft manuscript.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 9: Research Journal -->
-        <div class="tool-card active" data-navigator="journal">
-          <div class="tool-card-meta">
-            <span class="tool-icon">📓</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="journal" tabindex="0">
+          <span class="manifest-index">09</span>
+          <div class="manifest-body">
             <h3>Research Journal</h3>
-            <p>Log laboratory progress daily, document code regressions, and maintain a private digital scientific notebook.</p>
+            <p>Log daily progress, blockers, and next steps in a private digital notebook.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
-        <!-- Tool 10: Career Explorer -->
-        <div class="tool-card active" data-navigator="career">
-          <div class="tool-card-meta">
-            <span class="tool-icon">🧭</span>
-            <span class="tool-badge badge-active">Active Tool</span>
-          </div>
-          <div class="tool-card-body">
+        <div class="manifest-row" data-navigator="career" tabindex="0">
+          <span class="manifest-index">10</span>
+          <div class="manifest-body">
             <h3>Career Explorer</h3>
-            <p>Investigate postgraduate specializations, locate cutting-edge academic laboratories, and find research internship openings.</p>
+            <p>Investigate specializations, find labs, and locate research internship openings.</p>
           </div>
-          <div class="tool-action-btn">
-            Launch Navigator <span>→</span>
+          <div class="manifest-meta">
+            <span class="manifest-tag">Active</span>
+            <span class="manifest-arrow" aria-hidden="true">→</span>
           </div>
         </div>
 
