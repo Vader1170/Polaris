@@ -17,6 +17,12 @@
     if (firebaseAuth && window.onAuthStateChanged) {
       window.onAuthStateChanged(firebaseAuth, (user) => {
         currentUser = user;
+        if (document.getElementById("dashboard-view")) {
+          if (!user && sessionStorage.getItem("polaris-guest") !== "true") {
+            window.location.href = "/signin.html";
+            return;
+          }
+        }
         updateAuthUI(user);
       });
     } else {
@@ -43,14 +49,10 @@ function updateAuthUI(user) {
       });
       document.getElementById("history-btn")?.addEventListener("click", showHistory);
     } else {
-      container.innerHTML = `
-        <button class="btn btn-primary" id="sign-in-btn" style="background: var(--paper); color: var(--navy-950);">Sign in with Google</button>
-      `;
-      document.getElementById("sign-in-btn")?.addEventListener("click", () => {
-        if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) return;
-        const provider = new window.GoogleAuthProvider();
-        window.signInWithPopup(window.firebaseAuth, provider);
-      });
+      // Logged-out state on the navigator page means the user arrived as a guest
+      // (the auth listener above redirects to /signin.html otherwise), so there is
+      // nothing to render here — no header sign-in button anymore.
+      container.innerHTML = "";
     }
   }
 
@@ -136,6 +138,88 @@ function updateAuthUI(user) {
       alert("Could not load history.");
     }
   }
+
+  // ── North Star cursor trail (homepage hero only) ────────────────────
+
+  function initCursorTrail() {
+    const canvas = document.getElementById("cursor-trail-canvas");
+    if (!canvas) return;
+
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const hero = canvas.closest("section") || canvas.parentElement;
+    const ctx = canvas.getContext("2d");
+    const star = hero.querySelector(".polaris-star");
+
+    let mouseX = null;
+    let mouseY = null;
+    let rafId = null;
+
+    function resizeCanvas() {
+      const rect = hero.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    function getStarPosition() {
+      if (!star) return null;
+      const heroRect = hero.getBoundingClientRect();
+      const starRect = star.getBoundingClientRect();
+      return {
+        x: starRect.left - heroRect.left + starRect.width / 2,
+        y: starRect.top - heroRect.top + starRect.height / 2,
+      };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const starPos = getStarPosition();
+      if (mouseX === null || mouseY === null || !starPos) {
+        rafId = null;
+        return;
+      }
+      ctx.save();
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--gold-bright").trim() || "#E4C67F";
+      ctx.globalAlpha = 0.6;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 5]);
+      ctx.beginPath();
+      ctx.moveTo(mouseX, mouseY);
+      ctx.lineTo(starPos.x, starPos.y);
+      ctx.stroke();
+      ctx.restore();
+      rafId = null;
+    }
+
+    function requestDraw() {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(draw);
+      }
+    }
+
+    resizeCanvas();
+
+    hero.addEventListener("mousemove", (e) => {
+      const rect = hero.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+      requestDraw();
+    });
+
+    hero.addEventListener("mouseleave", () => {
+      mouseX = null;
+      mouseY = null;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      requestDraw();
+    });
+  }
+  initCursorTrail();
 
   // ── DOM helpers & navigation ──────────────────────────────────────
 
