@@ -245,7 +245,10 @@ function createGenerateEndpoint(
               { role: "user", content: userPrompt },
             ],
             temperature: 0.75,
-            max_tokens: 4096,
+            max_tokens: 16000,
+            reasoning:{
+              effort:"low"
+            }
           }),
         });
       } catch (fetchErr: any) {
