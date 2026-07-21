@@ -39,9 +39,9 @@ function updateAuthUI(user) {
       container.innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px;">
           <img src="${user.photoURL || ''}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%;">
-          <span style="font-weight: 500;">${user.displayName || 'User'}</span>
-          <button class="btn btn-ghost" id="sign-out-btn" style="font-size: 0.8rem; padding: 4px 12px;">Sign Out</button>
-          <button class="btn btn-ghost" id="history-btn" style="font-size: 0.8rem; padding: 4px 12px;">History</button>
+          <span style="font-weight: 500; color: var(--paper);">${user.displayName || 'User'}</span>
+          <button class="btn" id="sign-out-btn" style="font-size: 0.8rem; padding: 6px 16px; white-space: nowrap; background: transparent; color: var(--paper); border: 1px solid rgba(247, 245, 240, 0.3);">Sign Out</button>
+          <button class="btn" id="history-btn" style="font-size: 0.8rem; padding: 6px 16px; white-space: nowrap; background: transparent; color: var(--paper); border: 1px solid rgba(247, 245, 240, 0.3);">History</button>
         </div>
       `;
       document.getElementById("sign-out-btn")?.addEventListener("click", () => {
