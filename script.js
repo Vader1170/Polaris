@@ -1937,4 +1937,161 @@ function updateAuthUI(user) {
 
     if (data.commonMistakes && data.commonMistakes.length) {
       const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
-     
+      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
+    }
+
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  function renderLearningReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.learningGoalSummary || "Learning Plan";
+    leadEl.textContent = data.recommendedResource || "Recommended resource.";
+    gridEl.innerHTML = "";
+
+    gridEl.appendChild(createFullWidthCard("Learning Goal Summary", `<p>${data.learningGoalSummary || "Not provided."}</p>`, "🗓️", false));
+
+    if (data.recommendedResource) {
+      gridEl.appendChild(createGridCard("Recommended Resource", `<p>${data.recommendedResource}</p>`, "📖"));
+    }
+
+    const topics = data.topicBreakdown || [];
+    if (topics.length) {
+      const html = topics.map(t => `
+        <li style="margin-bottom: 8px;"><strong>${t.topic}</strong> — ${t.whyItMatters} ${t.prerequisiteOf ? `(Prerequisite of: ${t.prerequisiteOf.join(', ')})` : ''}</li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Topic Breakdown", `<ul>${html}</ul>`, "📚"));
+    }
+
+    const weeks = data.weeklySchedule || [];
+    if (weeks.length) {
+      const html = weeks.map(w => `
+        <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
+          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
+          <ul>${w.topics ? w.topics.map(t => `<li>${t}</li>`).join('') : ''}</ul>
+          ${w.practiceRecommendation ? `<p style="margin: 4px 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">Practice: ${w.practiceRecommendation}</p>` : ''}
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
+    }
+
+    if (data.selfCheckMilestones && data.selfCheckMilestones.length) {
+      const html = data.selfCheckMilestones.map(m => `<li>${m}</li>`).join("");
+      gridEl.appendChild(createGridCard("Self‑Check Milestones", `<ul>${html}</ul>`, "📋"));
+    }
+
+    if (data.commonStumblingBlocks && data.commonStumblingBlocks.length) {
+      const html = data.commonStumblingBlocks.map(b => `<li>${b}</li>`).join("");
+      gridEl.appendChild(createGridCard("Common Stumbling Blocks", `<ul>${html}</ul>`, "⚠️"));
+    }
+
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  function renderPaperReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = "Paper Review";
+    leadEl.textContent = data.overallAssessment || "Overall assessment.";
+    gridEl.innerHTML = "";
+
+    gridEl.appendChild(createFullWidthCard("Overall Assessment", `<p>${data.overallAssessment || "Not provided."}</p>`, "📝", false));
+
+    if (data.strengths && data.strengths.length) {
+      const html = data.strengths.map(s => `<li>${s}</li>`).join("");
+      gridEl.appendChild(createGridCard("Strengths", `<ul>${html}</ul>`, "✅"));
+    }
+
+    const meth = data.methodologyIssues || [];
+    if (meth.length) {
+      const html = meth.map(m => `<li><strong>${m.issue}</strong> — ${m.whyItMatters} (Suggested fix: ${m.suggestedFix})</li>`).join("");
+      gridEl.appendChild(createGridCard("Methodology Issues", `<ul>${html}</ul>`, "🔬"));
+    }
+
+    const clarity = data.clarityIssues || [];
+    if (clarity.length) {
+      const html = clarity.map(c => `<li><strong>${c.location}</strong> — ${c.issue} (Fix: ${c.suggestedFix})</li>`).join("");
+      gridEl.appendChild(createGridCard("Clarity Issues", `<ul>${html}</ul>`, "✍️"));
+    }
+
+    if (data.statisticalConcerns && data.statisticalConcerns.length) {
+      const html = data.statisticalConcerns.map(s => `<li>${s}</li>`).join("");
+      gridEl.appendChild(createGridCard("Statistical Concerns", `<ul>${html}</ul>`, "📊"));
+    }
+
+    if (data.citationConcerns && data.citationConcerns.length) {
+      const html = data.citationConcerns.map(c => `<li>${c}</li>`).join("");
+      gridEl.appendChild(createGridCard("Citation Concerns", `<ul>${html}</ul>`, "📚"));
+    }
+
+    if (data.revisionPriorityOrder && data.revisionPriorityOrder.length) {
+      const html = data.revisionPriorityOrder.map(r => `<li>${r}</li>`).join("");
+      gridEl.appendChild(createGridCard("Revision Priority Order", `<ul>${html}</ul>`, "📌"));
+    }
+
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+  function renderCareerReport(data, titleEl, leadEl, gridEl) {
+    titleEl.textContent = data.fieldOverview || "Career Exploration";
+    leadEl.textContent = "Specialization options.";
+    gridEl.innerHTML = "";
+
+    gridEl.appendChild(createFullWidthCard("Field Overview", `<p>${data.fieldOverview || "Not provided."}</p>`, "🧭", false));
+
+    const specs = data.specializationOptions || [];
+    if (specs.length) {
+      const html = specs.map(s => `
+        <li style="margin-bottom: 8px;"><strong>${s.name}</strong> — ${s.description} (${s.whatItInvolves})</li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Specialization Options", `<ul>${html}</ul>`, "🔍"));
+    }
+
+    if (data.howToFindLabs && data.howToFindLabs.length) {
+      const html = data.howToFindLabs.map(h => `<li>${h}</li>`).join("");
+      gridEl.appendChild(createGridCard("How to Find Labs", `<ul>${html}</ul>`, "🔬"));
+    }
+
+    const progs = data.internshipProgramTypes || [];
+    if (progs.length) {
+      const html = progs.map(p => `<li><strong>${p.type}</strong> — ${p.description} (Timeline: ${p.typicalTimeline})</li>`).join("");
+      gridEl.appendChild(createGridCard("Internship Program Types", `<ul>${html}</ul>`, "💼"));
+    }
+
+    if (data.gradSchoolPathOverview) {
+      gridEl.appendChild(createGridCard("Grad School Path Overview", `<p>${data.gradSchoolPathOverview}</p>`, "🎓"));
+    }
+
+    if (data.nextThreeActions && data.nextThreeActions.length) {
+      const html = data.nextThreeActions.map((a, i) => `
+        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
+          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
+        </div>
+      `).join("");
+      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
+    }
+  }
+
+})();
