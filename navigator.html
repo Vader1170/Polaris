@@ -175,7 +175,7 @@
       <div class="dashboard-header">
         <p class="section-eyebrow">Academic Dashboard</p>
         <h1 style="font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3rem); font-weight: 500; margin-bottom: 16px; color: var(--paper);">The Student Operating System</h1>
-        <p style="color: rgba(247, 245, 240, 0.65); max-width: 600px; margin: 0 auto;">Choose a navigator below. Each one maps a clear, structured path calibrated to your starting point, from raw inte[...]</p>
+        <p style="color: rgba(247, 245, 240, 0.65); max-width: 600px; margin: 0 auto;">Choose a navigator below. Each one maps a clear, structured path calibrated to your starting point, from raw interest to a sound proposal.</p>
       </div>
 
       <div class="manifest">
@@ -304,8 +304,812 @@
     </div>
   </section>
 
+  <!-- ================================================================ -->
+  <!-- RESEARCH NAVIGATOR                                                -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="research-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="research">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">
+          ← Return to Dashboard
+        </button>
+      </div>
+      <!-- Intro -->
+      <div class="navigator-intro" id="research-intro">
+        <span class="complete-mark" aria-hidden="true">✦</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Research Navigator</h2>
+        <p class="navigator-lead">
+          Let’s chart your academic coordinates. We’ll ask questions about your background, available materials, and long-term targets to draft a customized, rigorous research trajectory.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <!-- Form -->
+      <form class="navigator-form" id="research-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track">
+            <div class="progress-fill" id="research-progress-fill"></div>
+          </div>
+          <p class="progress-label">
+            Step <span id="research-current-step">1</span> of <span id="research-total-steps">15</span>
+          </p>
+        </div>
+        <div class="question-viewport" id="research-question-viewport"></div>
+        <p class="form-error" id="research-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost research-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary research-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <!-- Complete -->
+      <div class="navigator-complete" id="research-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">✦</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Coordinates Locked.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">
+          Your profile has been compiled. You can inspect the raw data below, or generate your AI roadmap.
+        </p>
+        <pre class="results-output" id="research-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost research-restart-btn">Restart</button>
+          <button class="btn btn-primary research-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Formulate AI Roadmap</button>
+        </div>
+      </div>
+      <!-- Loading -->
+      <div class="navigator-loading" id="research-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">✦</div></div></div>
+        <h2 class="section-title" id="research-loading-message">Synthesizing research vectors...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Our cognitive AI model is generating custom textbook references, planning weekly sprints, framing laboratories, and compiling publications benchmarks. Please do not close this window.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="research-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="research-loading-progress-text">Step 1 of 4: Analyzing student background metrics...</p>
+        </div>
+      </div>
+      <!-- Report -->
+      <div class="roadmap-container" id="research-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Formulated Academic Roadmap</p>
+          <h2 class="roadmap-title" id="research-report-title">Path to True North</h2>
+          <p class="roadmap-lead" id="research-report-lead">Loading formulation...</p>
+        </div>
+        <div class="roadmap-grid" id="research-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost research-restart-btn">Start New</button>
+          <button class="btn btn-ghost research-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary research-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <!-- Error -->
+      <div class="navigator-error" id="research-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="research-error-message" style="margin-bottom: 32px;">
+          We failed to contact the Druva AI coordinate engine.
+        </p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost research-error-back-btn">Go Back</button>
+          <button class="btn btn-primary research-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- SCIENCE FAIR NAVIGATOR                                            -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="sciencefair-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="sciencefair">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="sciencefair-intro">
+        <span class="complete-mark" aria-hidden="true">✺</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Science Fair Navigator</h2>
+        <p class="navigator-lead">
+          Structure your science fair project from raw idea to competition‑ready hypothesis, experimental design, and display plan.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="sciencefair-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="sciencefair-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="sciencefair-current-step">1</span> of <span id="sciencefair-total-steps">12</span></p>
+        </div>
+        <div class="question-viewport" id="sciencefair-question-viewport"></div>
+        <p class="form-error" id="sciencefair-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost sciencefair-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary sciencefair-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="sciencefair-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">✺</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Project Defined.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your science fair profile is ready. Generate a structured roadmap.</p>
+        <pre class="results-output" id="sciencefair-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost sciencefair-restart-btn">Restart</button>
+          <button class="btn btn-primary sciencefair-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Science Fair Plan</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="sciencefair-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">✺</div></div></div>
+        <h2 class="section-title" id="sciencefair-loading-message">Designing your experiment...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Building hypothesis, controls, and display plan.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="sciencefair-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="sciencefair-loading-progress-text">Step 1 of 4: Framing hypothesis...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="sciencefair-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Science Fair Roadmap</p>
+          <h2 class="roadmap-title" id="sciencefair-report-title">Project Title</h2>
+          <p class="roadmap-lead" id="sciencefair-report-lead">Hypothesis statement.</p>
+        </div>
+        <div class="roadmap-grid" id="sciencefair-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost sciencefair-restart-btn">Start New</button>
+          <button class="btn btn-ghost sciencefair-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary sciencefair-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="sciencefair-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="sciencefair-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost sciencefair-error-back-btn">Go Back</button>
+          <button class="btn btn-primary sciencefair-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- OLYMPIAD NAVIGATOR                                               -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="olympiad-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="olympiad">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="olympiad-intro">
+        <span class="complete-mark" aria-hidden="true">⚗️</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Olympiad Navigator</h2>
+        <p class="navigator-lead">
+          Build a strict, dated study schedule and resource list for your chosen academic olympiad.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="olympiad-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="olympiad-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="olympiad-current-step">1</span> of <span id="olympiad-total-steps">10</span></p>
+        </div>
+        <div class="question-viewport" id="olympiad-question-viewport"></div>
+        <p class="form-error" id="olympiad-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost olympiad-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary olympiad-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="olympiad-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">⚗️</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Olympiad Plan Defined.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your profile is ready. Generate a detailed preparation roadmap.</p>
+        <pre class="results-output" id="olympiad-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost olympiad-restart-btn">Restart</button>
+          <button class="btn btn-primary olympiad-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Olympiad Plan</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="olympiad-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">⚗️</div></div></div>
+        <h2 class="section-title" id="olympiad-loading-message">Crafting your study schedule...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Building syllabus breakdown, resources, and weekly plan.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="olympiad-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="olympiad-loading-progress-text">Step 1 of 4: Assessing current level...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="olympiad-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Olympiad Roadmap</p>
+          <h2 class="roadmap-title" id="olympiad-report-title">Target Olympiad</h2>
+          <p class="roadmap-lead" id="olympiad-report-lead">Current level assessment.</p>
+        </div>
+        <div class="roadmap-grid" id="olympiad-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost olympiad-restart-btn">Start New</button>
+          <button class="btn btn-ghost olympiad-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary olympiad-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="olympiad-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="olympiad-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost olympiad-error-back-btn">Go Back</button>
+          <button class="btn btn-primary olympiad-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- PORTFOLIO NAVIGATOR                                              -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="portfolio-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="portfolio">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="portfolio-intro">
+        <span class="complete-mark" aria-hidden="true">🎓</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">University Portfolio Navigator</h2>
+        <p class="navigator-lead">
+          Turn your existing work into a coherent application portfolio narrative for top universities.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="portfolio-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="portfolio-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="portfolio-current-step">1</span> of <span id="portfolio-total-steps">10</span></p>
+        </div>
+        <div class="question-viewport" id="portfolio-question-viewport"></div>
+        <p class="form-error" id="portfolio-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost portfolio-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary portfolio-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="portfolio-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">🎓</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Portfolio Mapped.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your assets are defined. Generate a narrative and action plan.</p>
+        <pre class="results-output" id="portfolio-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost portfolio-restart-btn">Restart</button>
+          <button class="btn btn-primary portfolio-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Portfolio Plan</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="portfolio-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">🎓</div></div></div>
+        <h2 class="section-title" id="portfolio-loading-message">Crafting your narrative...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Building strengths, gaps, and essay angles.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="portfolio-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="portfolio-loading-progress-text">Step 1 of 4: Analysing existing work...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="portfolio-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Portfolio Roadmap</p>
+          <h2 class="roadmap-title" id="portfolio-report-title">Your Narrative</h2>
+          <p class="roadmap-lead" id="portfolio-report-lead">Through‑line story.</p>
+        </div>
+        <div class="roadmap-grid" id="portfolio-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost portfolio-restart-btn">Start New</button>
+          <button class="btn btn-ghost portfolio-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary portfolio-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="portfolio-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="portfolio-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost portfolio-error-back-btn">Go Back</button>
+          <button class="btn btn-primary portfolio-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- DEBATE NAVIGATOR                                                 -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="debate-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="debate">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="debate-intro">
+        <span class="complete-mark" aria-hidden="true">🗣️</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Debate Navigator</h2>
+        <p class="navigator-lead">
+          Build an evidence‑backed case brief for a specific debate resolution/topic.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="debate-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="debate-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="debate-current-step">1</span> of <span id="debate-total-steps">9</span></p>
+        </div>
+        <div class="question-viewport" id="debate-question-viewport"></div>
+        <p class="form-error" id="debate-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost debate-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary debate-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="debate-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">🗣️</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Case Defined.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your debate profile is ready. Generate a case brief.</p>
+        <pre class="results-output" id="debate-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost debate-restart-btn">Restart</button>
+          <button class="btn btn-primary debate-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Debate Case</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="debate-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">🗣️</div></div></div>
+        <h2 class="section-title" id="debate-loading-message">Structuring your arguments...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Building contentions, evidence needs, and cross‑ex prep.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="debate-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="debate-loading-progress-text">Step 1 of 4: Analysing resolution...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="debate-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Debate Case</p>
+          <h2 class="roadmap-title" id="debate-report-title">Resolution Analysis</h2>
+          <p class="roadmap-lead" id="debate-report-lead">Case framework.</p>
+        </div>
+        <div class="roadmap-grid" id="debate-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost debate-restart-btn">Start New</button>
+          <button class="btn btn-ghost debate-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary debate-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="debate-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="debate-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost debate-error-back-btn">Go Back</button>
+          <button class="btn btn-primary debate-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- PROJECT BUILDER NAVIGATOR                                        -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="project-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="project">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="project-intro">
+        <span class="complete-mark" aria-hidden="true">🔧</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Project Builder Navigator</h2>
+        <p class="navigator-lead">
+          Break your software/product idea into a milestone‑based build plan.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="project-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="project-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="project-current-step">1</span> of <span id="project-total-steps">8</span></p>
+        </div>
+        <div class="question-viewport" id="project-question-viewport"></div>
+        <p class="form-error" id="project-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost project-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary project-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="project-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">🔧</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Project Defined.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your project profile is ready. Generate a build plan.</p>
+        <pre class="results-output" id="project-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost project-restart-btn">Restart</button>
+          <button class="btn btn-primary project-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Project Plan</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="project-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">🔧</div></div></div>
+        <h2 class="section-title" id="project-loading-message">Designing your build plan...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Breaking down features, tech stack, and milestones.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="project-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="project-loading-progress-text">Step 1 of 4: Analysing project scope...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="project-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Project Build Plan</p>
+          <h2 class="roadmap-title" id="project-report-title">Project Summary</h2>
+          <p class="roadmap-lead" id="project-report-lead">Core features overview.</p>
+        </div>
+        <div class="roadmap-grid" id="project-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost project-restart-btn">Start New</button>
+          <button class="btn btn-ghost project-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary project-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="project-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="project-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost project-error-back-btn">Go Back</button>
+          <button class="btn btn-primary project-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- LEARNING PLANNER NAVIGATOR                                       -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="learning-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="learning">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="learning-intro">
+        <span class="complete-mark" aria-hidden="true">🗓️</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Learning Planner Navigator</h2>
+        <p class="navigator-lead">
+          Turn a textbook/curriculum into an attainable weekly study schedule.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="learning-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="learning-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="learning-current-step">1</span> of <span id="learning-total-steps">8</span></p>
+        </div>
+        <div class="question-viewport" id="learning-question-viewport"></div>
+        <p class="form-error" id="learning-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost learning-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary learning-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="learning-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">🗓️</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Learning Plan Defined.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your learning profile is ready. Generate a weekly schedule.</p>
+        <pre class="results-output" id="learning-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost learning-restart-btn">Restart</button>
+          <button class="btn btn-primary learning-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Learning Plan</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="learning-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">🗓️</div></div></div>
+        <h2 class="section-title" id="learning-loading-message">Mapping your curriculum...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Building topic breakdown and weekly schedule.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="learning-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="learning-loading-progress-text">Step 1 of 4: Identifying learning goals...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="learning-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Learning Plan</p>
+          <h2 class="roadmap-title" id="learning-report-title">Learning Goal Summary</h2>
+          <p class="roadmap-lead" id="learning-report-lead">Recommended resource.</p>
+        </div>
+        <div class="roadmap-grid" id="learning-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost learning-restart-btn">Start New</button>
+          <button class="btn btn-ghost learning-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary learning-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="learning-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="learning-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost learning-error-back-btn">Go Back</button>
+          <button class="btn btn-primary learning-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- PAPER REVIEWER NAVIGATOR                                         -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="paper-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="paper">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="paper-intro">
+        <span class="complete-mark" aria-hidden="true">📝</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Paper Reviewer Navigator</h2>
+        <p class="navigator-lead">
+          Get structured, constructive feedback on a draft manuscript or pre‑print.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="paper-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="paper-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="paper-current-step">1</span> of <span id="paper-total-steps">6</span></p>
+        </div>
+        <div class="question-viewport" id="paper-question-viewport"></div>
+        <p class="form-error" id="paper-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost paper-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary paper-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="paper-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">📝</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Manuscript Submitted.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your paper is ready for review. Generate feedback.</p>
+        <pre class="results-output" id="paper-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost paper-restart-btn">Restart</button>
+          <button class="btn btn-primary paper-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Review</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="paper-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">📝</div></div></div>
+        <h2 class="section-title" id="paper-loading-message">Analysing your manuscript...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Evaluating methodology, clarity, and statistics.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="paper-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="paper-loading-progress-text">Step 1 of 4: Reading your text...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="paper-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Paper Review</p>
+          <h2 class="roadmap-title" id="paper-report-title">Overall Assessment</h2>
+          <p class="roadmap-lead" id="paper-report-lead">Strengths and weaknesses.</p>
+        </div>
+        <div class="roadmap-grid" id="paper-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost paper-restart-btn">Start New</button>
+          <button class="btn btn-ghost paper-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary paper-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="paper-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="paper-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost paper-error-back-btn">Go Back</button>
+          <button class="btn btn-primary paper-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- RESEARCH JOURNAL NAVIGATOR (different: CRUD + summarize)        -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="journal-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="journal">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="journal-intro">
+        <span class="complete-mark" aria-hidden="true">📓</span>
+        <p class="section-eyebrow">Logging Tool</p>
+        <h2 class="section-title">Research Journal</h2>
+        <p class="navigator-lead">
+          Log daily progress, blockers, and next steps. Your entries are saved privately in your browser.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Open Journal</button>
+      </div>
+      <!-- Journal UI -->
+      <div id="journal-app" hidden>
+        <!-- Entry form -->
+        <div style="background: var(--navy-900); border-radius: var(--radius-md); padding: 24px; margin-bottom: 32px;">
+          <h3 style="font-family: var(--font-display); font-weight: 500; margin-top: 0;">New Entry</h3>
+          <form id="journal-entry-form">
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+              <label style="flex: 1; min-width: 180px;">
+                <span style="font-family: var(--font-mono); font-size: 0.8rem; display: block; margin-bottom: 4px;">Date</span>
+                <input type="date" id="journal-date" class="field-text" style="width: 100%;">
+              </label>
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label>
+                <span style="font-family: var(--font-mono); font-size: 0.8rem; display: block; margin-bottom: 4px;">What did you work on?</span>
+                <textarea id="journal-work" class="field-textarea" rows="3" placeholder="Describe your progress..." required></textarea>
+              </label>
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label>
+                <span style="font-family: var(--font-mono); font-size: 0.8rem; display: block; margin-bottom: 4px;">Blockers / issues</span>
+                <textarea id="journal-blockers" class="field-textarea" rows="2" placeholder="Any obstacles?"></textarea>
+              </label>
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label>
+                <span style="font-family: var(--font-mono); font-size: 0.8rem; display: block; margin-bottom: 4px;">Next steps</span>
+                <textarea id="journal-next" class="field-textarea" rows="2" placeholder="What's next?"></textarea>
+              </label>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button type="submit" class="btn btn-primary" style="background: var(--paper); color: var(--navy-950);">Save Entry</button>
+              <button type="button" id="journal-summarize-btn" class="btn btn-ghost" style="border-color: var(--gold); color: var(--gold-bright);">Summarize Last N Entries</button>
+            </div>
+          </form>
+        </div>
+        <!-- Entries list -->
+        <div id="journal-entries">
+          <h3 style="font-family: var(--font-display); font-weight: 500; margin-top: 0;">Past Entries</h3>
+          <div id="journal-entries-list"></div>
+        </div>
+        <!-- Summary output -->
+        <div id="journal-summary-container" style="margin-top: 32px; display: none; background: var(--navy-900); border-radius: var(--radius-md); padding: 24px;">
+          <h3 style="font-family: var(--font-display); font-weight: 500; margin-top: 0;">AI Summary</h3>
+          <div id="journal-summary-content"></div>
+          <button class="btn btn-ghost" id="journal-summary-close" style="margin-top: 16px;">Close Summary</button>
+        </div>
+        <!-- Error for journal -->
+        <div class="navigator-error" id="journal-error" hidden style="margin-top: 24px;">
+          <span class="error-mark">⚠️</span>
+          <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Summary Failed</h2>
+          <p class="navigator-lead" id="journal-error-message" style="margin-bottom: 32px;">Could not generate summary.</p>
+          <button class="btn btn-primary" id="journal-retry-summary" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- CAREER EXPLORER NAVIGATOR                                        -->
+  <!-- ================================================================ -->
+  <section class="navigator" id="career-navigator" style="display: none; padding: 60px 0 100px;" data-navigator="career">
+    <div class="container navigator-container">
+      <div style="margin-bottom: 40px; text-align: left;">
+        <button class="btn btn-ghost back-to-dashboard-btn" style="color: var(--paper); border-color: rgba(247, 245, 240, 0.25);">← Return to Dashboard</button>
+      </div>
+      <div class="navigator-intro" id="career-intro">
+        <span class="complete-mark" aria-hidden="true">🧭</span>
+        <p class="section-eyebrow">Interactive Engine</p>
+        <h2 class="section-title">Career Explorer Navigator</h2>
+        <p class="navigator-lead">
+          Investigate postgraduate specializations, find labs, and discover research opportunities.
+        </p>
+        <button class="btn btn-primary start-navigator-btn" style="background: var(--paper); color: var(--navy-950);">Begin Formulation</button>
+      </div>
+      <form class="navigator-form" id="career-form" hidden>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="career-progress-fill"></div></div>
+          <p class="progress-label">Step <span id="career-current-step">1</span> of <span id="career-total-steps">7</span></p>
+        </div>
+        <div class="question-viewport" id="career-question-viewport"></div>
+        <p class="form-error" id="career-form-error" role="alert" aria-live="polite"></p>
+        <div class="navigator-controls">
+          <button type="button" class="btn btn-ghost career-prev-btn">Back</button>
+          <button type="button" class="btn btn-primary career-next-btn" style="background: var(--paper); color: var(--navy-950);">Continue</button>
+        </div>
+      </form>
+      <div class="navigator-complete" id="career-complete" hidden>
+        <span class="complete-mark" aria-hidden="true">🧭</span>
+        <h2 class="section-title" style="margin-bottom: 12px;">Career Path Defined.</h2>
+        <p class="navigator-lead" style="margin-bottom: 32px;">Your profile is ready. Generate a career exploration roadmap.</p>
+        <pre class="results-output" id="career-results-output"></pre>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-ghost career-restart-btn">Restart</button>
+          <button class="btn btn-primary career-generate-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Generate Career Plan</button>
+        </div>
+      </div>
+      <div class="navigator-loading" id="career-loading" hidden>
+        <div class="loading-spinner-container"><div class="polaris-spinner"><div class="spinner-orbit"></div><div class="spinner-core">🧭</div></div></div>
+        <h2 class="section-title" id="career-loading-message">Exploring career options...</h2>
+        <p class="navigator-lead" style="max-width: 48ch;">Mapping subfields, labs, and opportunities.</p>
+        <div class="loading-progress-container">
+          <div class="loading-progress-bar"><div class="loading-progress-fill" id="career-loading-progress-fill"></div></div>
+          <p class="loading-progress-text" id="career-loading-progress-text">Step 1 of 4: Analysing your interests...</p>
+        </div>
+      </div>
+      <div class="roadmap-container" id="career-report" hidden>
+        <div class="roadmap-header">
+          <p class="roadmap-tag">Career Exploration</p>
+          <h2 class="roadmap-title" id="career-report-title">Field Overview</h2>
+          <p class="roadmap-lead" id="career-report-lead">Specialization options.</p>
+        </div>
+        <div class="roadmap-grid" id="career-report-grid"></div>
+        <div class="roadmap-actions" style="margin-top: 50px; display: flex; gap: 16px; justify-content: center; border-top: 1px solid rgba(247, 245, 240, 0.1); padding-top: 32px;">
+          <button class="btn btn-ghost career-restart-btn">Start New</button>
+          <button class="btn btn-ghost career-regenerate-btn" style="border-color: var(--gold); color: var(--gold-bright);">Re-formulate</button>
+          <button class="btn btn-primary career-print-btn" style="background: var(--paper); color: var(--navy-950);">Print / PDF</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link" style="display: block; text-align: center; margin-top: 20px;">Something wrong or confusing? Tell me →</a>
+      </div>
+      <div class="navigator-error" id="career-error" hidden>
+        <span class="error-mark">⚠️</span>
+        <h2 class="section-title" style="color: #F0A08D; margin-bottom: 12px;">Connection Interrupted</h2>
+        <p class="navigator-lead" id="career-error-message" style="margin-bottom: 32px;">Failed to contact the AI engine.</p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="btn btn-ghost career-error-back-btn">Go Back</button>
+          <button class="btn btn-primary career-retry-btn" style="background: var(--gold); border-color: var(--gold); color: var(--navy-950);">Retry</button>
+        </div>
+        <a href="FEEDBACK_FORM_URL_HERE" target="_blank" rel="noopener" class="feedback-link">Something wrong or confusing? Tell me →</a>
+      </div>
+    </div>
+  </section>
+
 </main>
 
+<!-- ============================= -->
+<!-- GLOBAL FOOTER                 -->
+<!-- ============================= -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="logo-mark" aria-hidden="true">✦</span>
+      <span class="logo-word">Druva</span>
+    </div>
+    <p class="footer-tagline">Helping ambitious students find their way.</p>
+    <p class="footer-copy">&copy; 2026 Druva. Built for students, by students.</p>
+  </div>
+</footer>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyApM_d2eQOI1HzvSQaA-HdLjSs7aIZezzE",
+    authDomain: "polaris-6bb4a.firebaseapp.com",
+    projectId: "polaris-6bb4a",
+    storageBucket: "polaris-6bb4a.firebasestorage.app",
+    messagingSenderId: "803112836370",
+    appId: "1:803112836370:web:c3764f8676e915acb6e7cb",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.signOut = signOut;
+  window.onAuthStateChanged = onAuthStateChanged;
+  window.signInWithPopup = signInWithPopup;
+  window.GoogleAuthProvider = GoogleAuthProvider;
+</script>
 <script type="module" src="script.js"></script>
 </body>
 </html>
