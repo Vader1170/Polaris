@@ -10,7 +10,6 @@ const app = express();
 app.use(express.json());
 
 // Catch anything that would otherwise crash the whole serverless function
-// with no response body (that's what was producing the bare "Server error: 500").
 process.on("unhandledRejection", (reason) => {
   console.error("[UNHANDLED REJECTION]", reason);
 });
@@ -18,10 +17,7 @@ process.on("uncaughtException", (err) => {
   console.error("[UNCAUGHT EXCEPTION]", err);
 });
 
-// Quick debug middleware for generate endpoints.
-// NOTE: Express only matches mount paths on full path segments, so
-// app.use("/api/generate-", ...) NEVER matched "/api/generate-roadmap"
-// etc. — it needs a trailing "/" or a wildcard. Fixed below.
+// Debug middleware for generate endpoints
 app.use("/api/generate-*", (req, res, next) => {
   try {
     console.log("[DEBUG] /api/generate-* request", {
@@ -36,9 +32,6 @@ app.use("/api/generate-*", (req, res, next) => {
 });
 
 // ── Firebase Admin Initialisation ──────────────────────────────
-// Wrapped defensively: if anything here throws (bad private key format,
-// Firestore not provisioned on the project yet, etc.) we log it and
-// continue running with db = null instead of taking down every route.
 const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
@@ -77,7 +70,6 @@ initFirebase();
 async function verifyFirebaseToken(req: any, res: any, next: any) {
   try {
     const authHeader = req.headers.authorization;
-    // If Firebase Admin is not initialized, skip verification and treat as unauthenticated
     if (!admin.apps || admin.apps.length === 0) {
       req.user = null;
       return next();
@@ -96,24 +88,20 @@ async function verifyFirebaseToken(req: any, res: any, next: any) {
     }
     next();
   } catch (err) {
-    // Never let auth verification crash the request.
     console.error("verifyFirebaseToken unexpected error:", err);
     req.user = null;
     next();
   }
 }
 
-// ── Apply to all /api/generate-* endpoints ──────────────────────
 app.use("/api/generate-*", verifyFirebaseToken);
 
 // ── Shared helpers ──────────────────────────────────────────────
 function extractJson(text: string): any {
   let candidate = text.trim();
-  // Strip markdown code fences if present
   const fenceMatch = candidate.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fenceMatch) candidate = fenceMatch[1].trim();
 
-  // Find the first { and last } – assume it's JSON
   const start = candidate.indexOf("{");
   const end = candidate.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
@@ -123,7 +111,6 @@ function extractJson(text: string): any {
   try {
     return JSON.parse(candidate);
   } catch (e) {
-    // If first parse fails, try to repair brackets
     const repaired = repairJsonBrackets(candidate);
     try {
       return JSON.parse(repaired);
@@ -175,20 +162,32 @@ function repairJsonBrackets(text: string): string {
 }
 
 // ── OpenRouter config ──────────────────────────────────────────────
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-oss-20b:free";
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "gpt-4o-mini"; // reliable, cheap
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // ── Base system instruction ──────────────────────────────────────
-const baseSystemInstruction = `You are Polaris, a world-class scientific mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) worldwide.
+const baseSystemInstruction = `You are Polaris, a world-class mentor, university advisor, and educator. Your mission is to nurture independent inquiry in high school students (ages 14-18) worldwide.
 
 When a student shares their interests and constraints, you must:
 1. Calibrate STRICTLY to the math and programming background they actually reported — do not assume familiarity with anything beyond it. If they said "school-level math" or "just calculus," do not reference topics like PDEs, tensor calculus, or advanced linear algebra without a plain-English explanation first.
-2. Every time you introduce a technical term, acronym, or piece of jargon (e.g. "PINN," "Navier-Stokes," "surrogate model"), immediately follow it with a short plain-English gloss in parentheses or the same sentence.
-3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools (e.g., Python, LaTeX/Overleaf, Jupyter, R, Pandas, PyTorch, QGIS) appropriate to their stated skill level.
+2. Every time you introduce a technical term, acronym, or piece of jargon, immediately follow it with a short plain-English gloss.
+3. Provide high-quality, practical advice. Recommend specific textbooks, standard peer-reviewed literature, and concrete software tools appropriate to their stated skill level.
 4. Write only in English. Never insert stray characters, words, or script from other languages/alphabets anywhere in the output.
-5. Do not formulate questions or experiments that are unrealistic (e.g., do not suggest wet-lab CRISPR editing or supercomputer modeling if they only have a standard laptop and no school lab).
-6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actually understand given their stated background.
-7. You must respond with ONLY a single valid JSON object matching the structure given by the user. Do not wrap it in markdown code fences. Do not include any text before or after the JSON.`;
+5. Do not formulate questions or experiments that are unrealistic.
+6. Be structured, rigorous, encouraging, and clear. Avoid generic placeholder sentences; make every field detailed, specialized, and highly descriptive — but always in language the student can actually understand.
+7. You must respond with ONLY a single valid JSON object matching the structure given by the user. Do not wrap it in markdown code fences.
+8. Never invent named professors, specific paper titles, specific competition results, or specific URLs. When recommending literature, only cite well-established, widely-known textbooks/authors you are confident exist — if unsure, describe the type of resource instead of naming one.
+9. Output only standard English-alphabet text. Any character outside standard English punctuation and letters is a critical failure.`;
+
+// ── Garble detection ──────────────────────────────────────────────
+const GARBLE_PATTERN = /[\u00C0-\u024F\u0400-\u04FF\u4E00-\u9FFF]|[a-z]{2,}(?:ianza|polinks|sulphur|tên)\b/i;
+
+function containsGarble(obj: any): boolean {
+  if (typeof obj === "string") return GARBLE_PATTERN.test(obj);
+  if (Array.isArray(obj)) return obj.some(containsGarble);
+  if (obj && typeof obj === "object") return Object.values(obj).some(containsGarble);
+  return false;
+}
 
 // ── Firestore stats functions ────────────────────────────────────
 async function incrementUsageStats(type: string) {
@@ -222,7 +221,7 @@ function createGenerateEndpoint(
       }
       const apiKey = process.env.OPENROUTER_API_KEY;
       if (!apiKey) {
-        console.error(`[${route}] OPENROUTER_API_KEY environment variable is missing.`);
+        console.error(`[${route}] OPENROUTER_API_KEY missing.`);
         return res.status(500).json({ error: "OPENROUTER_API_KEY environment variable is missing on the server." });
       }
 
@@ -230,9 +229,8 @@ function createGenerateEndpoint(
       const systemInstruction = baseSystemInstruction + "\n\n" +
         `Respond with a single JSON object matching this schema:\n${schemaDescription}`;
 
-      let openRouterResponse;
-      try {
-        openRouterResponse = await fetch(OPENROUTER_URL, {
+      const makeRequest = async (temp: number) => {
+        const response = await fetch(OPENROUTER_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -244,26 +242,20 @@ function createGenerateEndpoint(
               { role: "system", content: systemInstruction },
               { role: "user", content: userPrompt },
             ],
-            temperature: 0.75,
+            temperature: temp,
             max_tokens: 16000,
-            reasoning:{
-              effort:"low"
-            }
+            response_format: { type: "json_object" },
           }),
         });
-      } catch (fetchErr: any) {
-        console.error(`[${route}] Network error calling OpenRouter:`, fetchErr);
-        return res.status(502).json({ error: "Could not reach the AI provider (network error)." });
-      }
+        if (!response.ok) {
+          const errorBody = await response.text().catch(() => "");
+          throw new Error(`OpenRouter API request failed with status ${response.status}: ${errorBody}`);
+        }
+        return await response.json();
+      };
 
-      if (!openRouterResponse.ok) {
-        const errorBody = await openRouterResponse.text().catch(() => "");
-        console.error(`OpenRouter error (${openRouterResponse.status}):`, errorBody);
-        return res.status(502).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
-      }
-
-      const data = await openRouterResponse.json();
-      const messageContent = data?.choices?.[0]?.message?.content;
+      let data = await makeRequest(0.4);
+      let messageContent = data?.choices?.[0]?.message?.content;
       if (!messageContent || typeof messageContent !== "string") {
         console.error("OpenRouter unexpected payload:", JSON.stringify(data));
         return res.status(502).json({ error: "OpenRouter API returned an empty or malformed response." });
@@ -277,7 +269,24 @@ function createGenerateEndpoint(
         return res.status(502).json({ error: "Failed to parse the AI provider's response as JSON." });
       }
 
-      // ── Save to Firestore if user is authenticated ──────────
+      // Retry if garbled
+      if (containsGarble(parsedData)) {
+        console.warn(`[${route}] Garbled output detected, regenerating once.`);
+        try {
+          const retryData = await makeRequest(0.3);
+          const retryContent = retryData?.choices?.[0]?.message?.content;
+          if (retryContent) {
+            const retryParsed = extractJson(retryContent);
+            if (!containsGarble(retryParsed)) {
+              parsedData = retryParsed;
+            }
+          }
+        } catch (retryErr) {
+          console.error("Retry failed:", retryErr);
+        }
+      }
+
+      // Save to Firestore
       const uid = req.user?.uid;
       if (uid && db) {
         try {
@@ -304,6 +313,12 @@ function createGenerateEndpoint(
 
 // ── Define all endpoints ────────────────────────────────────────
 
+function formatAnswers(answers: any) {
+  return Object.entries(answers)
+    .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+    .join("\n");
+}
+
 // Research
 const researchSchema = `{
   "researchVision": string,
@@ -317,17 +332,14 @@ const researchSchema = `{
   "publicationChecklist": string[],
   "competitions": [{ "name": string, "suitability": string }],
   "commonMistakes": string[],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
 createGenerateEndpoint(
   "/api/generate-roadmap",
   researchSchema,
-  (answers) => {
-    const formatted = Object.entries(answers)
-      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-      .join("\n");
-    return `The student's profile is compiled below:\n${formatted}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tailored research roadmap for them.`;
-  },
+  (answers) => `The student's profile is compiled below:\n${formatAnswers(answers)}\n\nAs their experienced research mentor, analyze their background, available time, current skills, and interests. Generate a tailored research roadmap for them. Include concrete ways AI can speed up their workflow and specific ways they can adjust the plan to their preferences.`,
   "research"
 );
 
@@ -346,21 +358,18 @@ const scienceFairSchema = `{
   "timelineToFairDate": [{ "milestone": string, "targetDate": string, "tasks": string[] }],
   "judgingPrepChecklist": string[],
   "commonPitfalls": string[],
-  "suitableFairs": [{ "name": string, "suitability": string }]
+  "suitableFairs": [{ "name": string, "suitability": string }],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }]
 }`;
 createGenerateEndpoint(
   "/api/generate-sciencefair",
   scienceFairSchema,
-  (answers) => {
-    const formatted = Object.entries(answers)
-      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-      .join("\n");
-    return `The student's science fair profile:\n${formatted}\n\nGenerate a structured plan for their project.`;
-  },
+  (answers) => `The student's science fair profile:\n${formatAnswers(answers)}\n\nGenerate a structured plan for their project. Include concrete ways AI can accelerate their work and specific customisation options.`,
   "sciencefair"
 );
 
-// Olympiad (stub – complete later)
+// Olympiad
 const olympiadSchema = `{
   "targetOlympiad": string,
   "currentLevelAssessment": string,
@@ -370,9 +379,16 @@ const olympiadSchema = `{
   "practiceProblemSets": [{ "source": string, "description": string }],
   "mockTestPlan": string,
   "commonMistakes": string[],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
-createGenerateEndpoint("/api/generate-olympiad", olympiadSchema, (a) => "Olympiad preparation", "olympiad");
+createGenerateEndpoint(
+  "/api/generate-olympiad",
+  olympiadSchema,
+  (answers) => `The student's olympiad prep profile:\n${formatAnswers(answers)}\n\nAs their experienced olympiad coach, build a rigorous, dated syllabus breakdown, weekly schedule, and resource list calibrated exactly to their reported level, subject, and target date. Reference real, well-known textbooks and problem sets appropriate to the specific olympiad they named. Include concrete AI workflow tips and customisation options.`,
+  "olympiad"
+);
 
 // Portfolio
 const portfolioSchema = `{
@@ -384,9 +400,16 @@ const portfolioSchema = `{
   "essayAngleSuggestions": string[],
   "timeline": [{ "weekOrMonthLabel": string, "tasks": string[] }],
   "redFlagsToAvoid": string[],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
-createGenerateEndpoint("/api/generate-portfolio", portfolioSchema, (a) => "Portfolio plan", "portfolio");
+createGenerateEndpoint(
+  "/api/generate-portfolio",
+  portfolioSchema,
+  (answers) => `The student's university portfolio profile:\n${formatAnswers(answers)}\n\nAs their admissions strategist, identify genuine strengths and gaps in what they've already built, and design a coherent narrative connecting their existing work to their target universities and major. Be specific to what they actually listed. Include AI workflow tips and customisation options.`,
+  "portfolio"
+);
 
 // Debate
 const debateSchema = `{
@@ -398,9 +421,16 @@ const debateSchema = `{
   "deliveryTips": string[],
   "prepTimeline": [{ "sessionLabel": string, "tasks": string[] }],
   "commonMistakes": string[],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
-createGenerateEndpoint("/api/generate-debate", debateSchema, (a) => "Debate case", "debate");
+createGenerateEndpoint(
+  "/api/generate-debate",
+  debateSchema,
+  (answers) => `The student's debate case profile:\n${formatAnswers(answers)}\n\nAs their debate coach, build a case framework specific to the exact resolution and side they gave you, anticipate real opposing arguments for that resolution, and describe concretely what kind of evidence to look for. Include AI workflow tips and customisation options.`,
+  "debate"
+);
 
 // Project Builder
 const projectSchema = `{
@@ -413,9 +443,16 @@ const projectSchema = `{
   "deploymentPlan": string,
   "testingChecklist": string[],
   "commonMistakes": string[],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
-createGenerateEndpoint("/api/generate-project", projectSchema, (a) => "Project plan", "project");
+createGenerateEndpoint(
+  "/api/generate-project",
+  projectSchema,
+  (answers) => `The student's project idea:\n${formatAnswers(answers)}\n\nAs a senior engineer mentoring a student, break their idea into concrete, buildable milestones matched to their stated skill level and time budget, recommend a tech stack they can realistically learn and use, and describe a real, minimal architecture. Include AI workflow tips and customisation options.`,
+  "project"
+);
 
 // Learning Planner
 const learningSchema = `{
@@ -425,9 +462,16 @@ const learningSchema = `{
   "weeklySchedule": [{ "weekNumber": string, "topics": string[], "practiceRecommendation": string }],
   "selfCheckMilestones": string[],
   "commonStumblingBlocks": string[],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
-createGenerateEndpoint("/api/generate-learning", learningSchema, (a) => "Learning plan", "learning");
+createGenerateEndpoint(
+  "/api/generate-learning",
+  learningSchema,
+  (answers) => `The student's learning goal:\n${formatAnswers(answers)}\n\nAs their tutor, break their subject into an ordered topic sequence respecting prerequisites, build a realistic weekly schedule matched to their stated hours and deadline, and recommend a specific textbook or course if they haven't already chosen one. Include AI workflow tips and customisation options.`,
+  "learning"
+);
 
 // Paper Reviewer
 const paperSchema = `{
@@ -438,9 +482,16 @@ const paperSchema = `{
   "statisticalConcerns": string[],
   "citationConcerns": string[],
   "revisionPriorityOrder": string[],
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
-createGenerateEndpoint("/api/generate-paper", paperSchema, (a) => "Paper review", "paper");
+createGenerateEndpoint(
+  "/api/generate-paper",
+  paperSchema,
+  (answers) => `The field is ${answers.field}, target venue: ${answers.venue || "unspecified"}.\n\nManuscript:\n${answers.manuscript}\n\nAs a peer reviewer, give specific, line-referenced feedback on the ACTUAL text above — quote or paraphrase specific weak sentences/claims rather than giving generic writing advice. Focus especially on: ${Array.isArray(answers.feedbackFocus) ? answers.feedbackFocus.join(", ") : answers.feedbackFocus}. Include AI workflow tips and customisation options.`,
+  "paper"
+);
 
 // Career Explorer
 const careerSchema = `{
@@ -449,11 +500,18 @@ const careerSchema = `{
   "howToFindLabs": string[],
   "internshipProgramTypes": [{ "type": string, "description": string, "typicalTimeline": string }],
   "gradSchoolPathOverview": string,
+  "aiWorkflowTips": [{ "task": string, "howAiHelps": string }],
+  "makeItYours": [{ "aspect": string, "howToAdjust": string }],
   "nextThreeActions": string[]
 }`;
-createGenerateEndpoint("/api/generate-career", careerSchema, (a) => "Career plan", "career");
+createGenerateEndpoint(
+  "/api/generate-career",
+  careerSchema,
+  (answers) => `The student's career exploration profile:\n${formatAnswers(answers)}\n\nAs a career advisor in ${answers.fields}, describe real specialization tracks within that field, concrete strategies for finding labs/professors given their stage and geographic constraints, and a realistic grad-school path overview. Include AI workflow tips and customisation options.`,
+  "career"
+);
 
-// ── Journal Summary (separate, no Firestore save) ──────────────
+// ── Journal Summary ──────────────────────────────────────────────
 app.post("/api/summarize-journal", async (req, res) => {
   try {
     const { entries, model = OPENROUTER_MODEL } = req.body;
@@ -479,36 +537,31 @@ app.post("/api/summarize-journal", async (req, res) => {
       "suggestedNextSteps": string[]
     }`;
 
-    let openRouterResponse;
-    try {
-      openRouterResponse = await fetch(OPENROUTER_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemInstruction },
-            { role: "user", content: userPrompt },
-          ],
-          temperature: 0.6,
-          max_tokens: 4000,
-        }),
-      });
-    } catch (fetchErr: any) {
-      console.error("Network error calling OpenRouter (journal):", fetchErr);
-      return res.status(502).json({ error: "Could not reach the AI provider (network error)." });
+    const response = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.4,
+        max_tokens: 4000,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "");
+      console.error(`OpenRouter error (${response.status}):`, errorBody);
+      return res.status(502).json({ error: `OpenRouter API request failed with status ${response.status}.` });
     }
 
-    if (!openRouterResponse.ok) {
-      const errorBody = await openRouterResponse.text().catch(() => "");
-      console.error(`OpenRouter error (${openRouterResponse.status}):`, errorBody);
-      return res.status(502).json({ error: `OpenRouter API request failed with status ${openRouterResponse.status}.` });
-    }
-
-    const data = await openRouterResponse.json();
+    const data = await response.json();
     const messageContent = data?.choices?.[0]?.message?.content;
     if (!messageContent || typeof messageContent !== "string") {
       return res.status(502).json({ error: "OpenRouter returned empty or malformed response." });
@@ -613,11 +666,7 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
-// ── Global error handler (must be last) ─────────────────────────
-// Guarantees the client always gets JSON back with an `.error` field,
-// even if something upstream throws synchronously and skips a route's
-// own try/catch. This is what stops a raw, bodyless 500 from reaching
-// the frontend.
+// ── Global error handler ─────────────────────────────────────────
 app.use((err: any, req: any, res: any, next: any) => {
   console.error("[GLOBAL ERROR HANDLER]", err);
   if (res.headersSent) return next(err);
