@@ -249,7 +249,7 @@ function updateAuthUI(user) {
 
   backButtons.forEach(btn => btn.addEventListener("click", goToDashboard));
 
-  const toolCards = $$(".tool-card.active[data-navigator]");
+  const toolCards = $$(".tool-card.active[data-navigator], .manifest-row[data-navigator]");
   toolCards.forEach(card => {
     card.addEventListener("click", () => {
       const navName = card.dataset.navigator;
