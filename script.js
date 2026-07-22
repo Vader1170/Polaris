@@ -26,7 +26,6 @@
         updateAuthUI(user);
       });
     } else {
-      // Firebase init script hasn't finished setting window.firebaseAuth yet — retry shortly
       setTimeout(initAuthListener, 100);
     }
   }
@@ -49,9 +48,6 @@ function updateAuthUI(user) {
       });
       document.getElementById("history-btn")?.addEventListener("click", showHistory);
     } else {
-      // Logged-out state on the navigator page means the user arrived as a guest
-      // (the auth listener above redirects to /signin.html otherwise), so there is
-      // nothing to render here — no header sign-in button anymore.
       container.innerHTML = "";
     }
   }
@@ -249,7 +245,7 @@ function updateAuthUI(user) {
 
   backButtons.forEach(btn => btn.addEventListener("click", goToDashboard));
 
-  const toolCards = $$(".tool-card.active[data-navigator], .manifest-row[data-navigator]");
+  const toolCards = $$(".tool-card.active[data-navigator]");
   toolCards.forEach(card => {
     card.addEventListener("click", () => {
       const navName = card.dataset.navigator;
@@ -587,6 +583,7 @@ function updateAuthUI(user) {
         renderReport(data);
         loading.hidden = true;
         report.hidden = false;
+        config._lastData = data; // for PDF export
         report.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (err) {
         clearInterval(interval);
@@ -658,25 +655,62 @@ function updateAuthUI(user) {
       if (regenerateBtn) regenerateBtn.addEventListener("click", generate);
       if (retryBtn) retryBtn.addEventListener("click", generate);
 
+      // ── NEW: Real PDF generation ──────────────────────────────
       if (printBtn) {
         printBtn.addEventListener("click", () => {
-          reportGrid.querySelectorAll(".roadmap-card").forEach(card => {
-            const content = card.querySelector(".card-content");
-            const toggle = card.querySelector(".collapse-toggle");
-            if (content) content.style.display = "block";
-            if (toggle) toggle.textContent = "[ collapse ]";
-            card.style.opacity = "1";
-          });
-          let header = report.querySelector(".print-report-header");
-          if (!header) {
-            header = document.createElement("div");
-            header.className = "print-report-header";
-            report.insertBefore(header, report.firstChild);
+          const data = config._lastData;
+          if (!data) {
+            alert("No data to export. Please generate a plan first.");
+            return;
           }
-          const titleText = reportTitle.textContent || "Polaris Plan";
-          const dateStr = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-          header.innerHTML = `<span>Polaris - ${titleText}</span><span>Generated ${dateStr}</span>`;
-          window.print();
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({ unit: "pt", format: "a4" });
+          const marginX = 50;
+          let y = 60;
+          const pageHeight = doc.internal.pageSize.getHeight();
+          const maxWidth = doc.internal.pageSize.getWidth() - marginX * 2;
+
+          function checkPageBreak(neededHeight) {
+            if (y + neededHeight > pageHeight - 50) { doc.addPage(); y = 60; }
+          }
+          function addHeading(text, size = 16) {
+            checkPageBreak(30);
+            doc.setFont("helvetica", "bold"); doc.setFontSize(size);
+            doc.text(text, marginX, y); y += size + 10;
+          }
+          function addBody(text, size = 11) {
+            doc.setFont("helvetica", "normal"); doc.setFontSize(size);
+            const lines = doc.splitTextToSize(text, maxWidth);
+            lines.forEach(line => { checkPageBreak(16); doc.text(line, marginX, y); y += 16; });
+            y += 6;
+          }
+
+          addHeading(reportTitle.textContent || "Roadmap", 20);
+          addBody(reportLead.textContent || "");
+          y += 6;
+          doc.setDrawColor(200); doc.line(marginX, y, marginX + maxWidth, y); y += 20;
+
+          // Walk the data object
+          Object.entries(data).forEach(([key, value]) => {
+            if (!value || (Array.isArray(value) && value.length === 0)) return;
+            // Skip the new fields if they are already handled separately, or include them as sections
+            const label = key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
+            addHeading(label, 13);
+            if (typeof value === "string") {
+              addBody(value);
+            } else if (Array.isArray(value)) {
+              value.forEach(item => {
+                if (typeof item === "string") addBody("•  " + item);
+                else if (item && typeof item === "object") {
+                  const line = Object.values(item).filter(Boolean).join(" — ");
+                  addBody("•  " + line);
+                }
+              });
+            }
+            y += 4;
+          });
+
+          doc.save(`${(reportTitle.textContent || "roadmap").replace(/[^\w]+/g, "-")}.pdf`);
         });
       }
 
@@ -972,6 +1006,31 @@ function updateAuthUI(user) {
     { key: "timeHorizon", type: "dropdown", label: "Time horizon", hint: "", required: true, options: ["Choose an option", "This summer", "Next year", "Several years out"] },
   ];
 
+  // ── Shared helper to render AI tips and adjustments ──────────────
+
+  function renderTipsAndAdjustments(data, gridEl) {
+    const tips = data.aiWorkflowTips || [];
+    const adjustments = data.makeItYours || [];
+    if (tips.length) {
+      const html = tips.map(t => `
+        <li style="margin-bottom: 12px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
+          <strong style="color: var(--gold-bright); display: block; font-size: 1.02rem;">${t.task}</strong>
+          <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247, 245, 240, 0.7);">${t.howAiHelps}</p>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("AI Workflow Tips", `<ul style="padding-left: 0;">${html}</ul>`, "🤖"));
+    }
+    if (adjustments.length) {
+      const html = adjustments.map(a => `
+        <li style="margin-bottom: 12px; list-style: none; border-left: 2px solid var(--gold); padding-left: 12px;">
+          <strong style="color: var(--gold-bright); display: block; font-size: 1.02rem;">${a.aspect}</strong>
+          <p style="margin: 4px 0 0; font-size: 0.9rem; color: rgba(247, 245, 240, 0.7);">${a.howToAdjust}</p>
+        </li>
+      `).join("");
+      gridEl.appendChild(createGridCard("Make It Yours", `<ul style="padding-left: 0;">${html}</ul>`, "✏️"));
+    }
+  }
+
   // ── Register all navigators ────────────────────────────────────────
 
   createNavigator({
@@ -1013,6 +1072,7 @@ function updateAuthUI(user) {
     ],
     renderReport: function(data, titleEl, leadEl, gridEl) {
       renderResearchReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
     },
   });
 
@@ -1053,7 +1113,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Planning controls and validation...", pct: 75 },
       { text: "Step 4 of 4: Building display board outline...", pct: 98 },
     ],
-    renderReport: renderScienceFairReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderScienceFairReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   createNavigator({
@@ -1093,7 +1156,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Creating weekly schedule...", pct: 75 },
       { text: "Step 4 of 4: Compiling resource list...", pct: 98 },
     ],
-    renderReport: renderOlympiadReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderOlympiadReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   createNavigator({
@@ -1133,7 +1199,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Crafting essay angles...", pct: 75 },
       { text: "Step 4 of 4: Building timeline...", pct: 98 },
     ],
-    renderReport: renderPortfolioReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderPortfolioReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   createNavigator({
@@ -1173,7 +1242,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Anticipating opposition...", pct: 75 },
       { text: "Step 4 of 4: Preparing cross-ex...", pct: 98 },
     ],
-    renderReport: renderDebateReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderDebateReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   createNavigator({
@@ -1213,7 +1285,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Planning milestones...", pct: 75 },
       { text: "Step 4 of 4: Suggesting tech stack...", pct: 98 },
     ],
-    renderReport: renderProjectReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderProjectReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   createNavigator({
@@ -1253,7 +1328,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Creating weekly schedule...", pct: 75 },
       { text: "Step 4 of 4: Recommending resources...", pct: 98 },
     ],
-    renderReport: renderLearningReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderLearningReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   createNavigator({
@@ -1293,7 +1371,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Checking clarity...", pct: 75 },
       { text: "Step 4 of 4: Formulating revisions...", pct: 98 },
     ],
-    renderReport: renderPaperReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderPaperReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   createNavigator({
@@ -1353,7 +1434,10 @@ function updateAuthUI(user) {
       { text: "Step 3 of 4: Finding labs and opportunities...", pct: 75 },
       { text: "Step 4 of 4: Outlining next actions...", pct: 98 },
     ],
-    renderReport: renderCareerReport,
+    renderReport: function(data, titleEl, leadEl, gridEl) {
+      renderCareerReport(data, titleEl, leadEl, gridEl);
+      renderTipsAndAdjustments(data, gridEl);
+    },
   });
 
   // ── UI card helpers ──────────────────────────────────────────────────
@@ -1853,186 +1937,4 @@ function updateAuthUI(user) {
 
     if (data.commonMistakes && data.commonMistakes.length) {
       const html = data.commonMistakes.map(m => `<li>${m}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Mistakes", `<ul>${html}</ul>`, "⚠️"));
-    }
-
-    if (data.nextThreeActions && data.nextThreeActions.length) {
-      const html = data.nextThreeActions.map((a, i) => `
-        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
-          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
-          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
-    }
-  }
-
-  function renderLearningReport(data, titleEl, leadEl, gridEl) {
-    titleEl.textContent = data.learningGoalSummary || "Learning Plan";
-    leadEl.textContent = data.recommendedResource || "Recommended resource.";
-    gridEl.innerHTML = "";
-
-    gridEl.appendChild(createFullWidthCard("Learning Goal Summary", `<p>${data.learningGoalSummary || "Not provided."}</p>`, "🗓️", false));
-
-    if (data.recommendedResource) {
-      gridEl.appendChild(createGridCard("Recommended Resource", `<p>${data.recommendedResource}</p>`, "📖"));
-    }
-
-    const topics = data.topicBreakdown || [];
-    if (topics.length) {
-      const html = topics.map(t => `
-        <li style="margin-bottom: 8px;"><strong>${t.topic}</strong> — ${t.whyItMatters} ${t.prerequisiteOf ? `(Prerequisite of: ${t.prerequisiteOf.join(', ')})` : ''}</li>
-      `).join("");
-      gridEl.appendChild(createGridCard("Topic Breakdown", `<ul>${html}</ul>`, "📚"));
-    }
-
-    const weeks = data.weeklySchedule || [];
-    if (weeks.length) {
-      const html = weeks.map(w => `
-        <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(247,245,240,0.05); padding-bottom: 8px;">
-          <strong style="font-family: var(--font-mono); color: var(--gold-bright);">Week ${w.weekNumber}</strong>
-          <ul>${w.topics ? w.topics.map(t => `<li>${t}</li>`).join('') : ''}</ul>
-          ${w.practiceRecommendation ? `<p style="margin: 4px 0; font-size: 0.9rem; color: rgba(247,245,240,0.7);">Practice: ${w.practiceRecommendation}</p>` : ''}
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Weekly Schedule", html, "📅"));
-    }
-
-    if (data.selfCheckMilestones && data.selfCheckMilestones.length) {
-      const html = data.selfCheckMilestones.map(m => `<li>${m}</li>`).join("");
-      gridEl.appendChild(createGridCard("Self‑Check Milestones", `<ul>${html}</ul>`, "📋"));
-    }
-
-    if (data.commonStumblingBlocks && data.commonStumblingBlocks.length) {
-      const html = data.commonStumblingBlocks.map(b => `<li>${b}</li>`).join("");
-      gridEl.appendChild(createGridCard("Common Stumbling Blocks", `<ul>${html}</ul>`, "⚠️"));
-    }
-
-    if (data.nextThreeActions && data.nextThreeActions.length) {
-      const html = data.nextThreeActions.map((a, i) => `
-        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
-          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
-          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
-    }
-  }
-
-  function renderPaperReport(data, titleEl, leadEl, gridEl) {
-    titleEl.textContent = "Paper Review";
-    leadEl.textContent = data.overallAssessment || "Overall assessment.";
-    gridEl.innerHTML = "";
-
-    gridEl.appendChild(createFullWidthCard("Overall Assessment", `<p>${data.overallAssessment || "Not provided."}</p>`, "📝", false));
-
-    if (data.strengths && data.strengths.length) {
-      const html = data.strengths.map(s => `<li>${s}</li>`).join("");
-      gridEl.appendChild(createGridCard("Strengths", `<ul>${html}</ul>`, "✅"));
-    }
-
-    const meth = data.methodologyIssues || [];
-    if (meth.length) {
-      const html = meth.map(m => `<li><strong>${m.issue}</strong> — ${m.whyItMatters} (Suggested fix: ${m.suggestedFix})</li>`).join("");
-      gridEl.appendChild(createGridCard("Methodology Issues", `<ul>${html}</ul>`, "🔬"));
-    }
-
-    const clarity = data.clarityIssues || [];
-    if (clarity.length) {
-      const html = clarity.map(c => `<li><strong>${c.location}</strong> — ${c.issue} (Fix: ${c.suggestedFix})</li>`).join("");
-      gridEl.appendChild(createGridCard("Clarity Issues", `<ul>${html}</ul>`, "✍️"));
-    }
-
-    if (data.statisticalConcerns && data.statisticalConcerns.length) {
-      const html = data.statisticalConcerns.map(s => `<li>${s}</li>`).join("");
-      gridEl.appendChild(createGridCard("Statistical Concerns", `<ul>${html}</ul>`, "📊"));
-    }
-
-    if (data.citationConcerns && data.citationConcerns.length) {
-      const html = data.citationConcerns.map(c => `<li>${c}</li>`).join("");
-      gridEl.appendChild(createGridCard("Citation Concerns", `<ul>${html}</ul>`, "📚"));
-    }
-
-    if (data.revisionPriorityOrder && data.revisionPriorityOrder.length) {
-      const html = data.revisionPriorityOrder.map(r => `<li>${r}</li>`).join("");
-      gridEl.appendChild(createGridCard("Revision Priority Order", `<ul>${html}</ul>`, "📌"));
-    }
-
-    if (data.nextThreeActions && data.nextThreeActions.length) {
-      const html = data.nextThreeActions.map((a, i) => `
-        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
-          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
-          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
-    }
-  }
-
-  function renderCareerReport(data, titleEl, leadEl, gridEl) {
-    titleEl.textContent = data.fieldOverview || "Career Exploration";
-    leadEl.textContent = "Specialization options.";
-    gridEl.innerHTML = "";
-
-    gridEl.appendChild(createFullWidthCard("Field Overview", `<p>${data.fieldOverview || "Not provided."}</p>`, "🧭", false));
-
-    const specs = data.specializationOptions || [];
-    if (specs.length) {
-      const html = specs.map(s => `
-        <li style="margin-bottom: 8px;"><strong>${s.name}</strong> — ${s.description} (${s.whatItInvolves})</li>
-      `).join("");
-      gridEl.appendChild(createGridCard("Specialization Options", `<ul>${html}</ul>`, "🔍"));
-    }
-
-    if (data.howToFindLabs && data.howToFindLabs.length) {
-      const html = data.howToFindLabs.map(h => `<li>${h}</li>`).join("");
-      gridEl.appendChild(createGridCard("How to Find Labs", `<ul>${html}</ul>`, "🔬"));
-    }
-
-    const progs = data.internshipProgramTypes || [];
-    if (progs.length) {
-      const html = progs.map(p => `<li><strong>${p.type}</strong> — ${p.description} (Timeline: ${p.typicalTimeline})</li>`).join("");
-      gridEl.appendChild(createGridCard("Internship Program Types", `<ul>${html}</ul>`, "💼"));
-    }
-
-    if (data.gradSchoolPathOverview) {
-      gridEl.appendChild(createGridCard("Grad School Path Overview", `<p>${data.gradSchoolPathOverview}</p>`, "🎓"));
-    }
-
-    if (data.nextThreeActions && data.nextThreeActions.length) {
-      const html = data.nextThreeActions.map((a, i) => `
-        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px;">
-          <span style="font-family: var(--font-mono); background: var(--gold); color: var(--navy-950); font-weight: bold; font-size: 0.9rem; padding: 2px 8px; border-radius: 4px;">0${i+1}</span>
-          <p style="margin: 0; font-size: 1rem; font-weight: 500; color: var(--paper);">${a}</p>
-        </div>
-      `).join("");
-      gridEl.appendChild(createFullWidthCard("Next Three Actions", html, "🚀", false));
-    }
-  }
-
-})();
-
-// ── Scroll reveal for redesigned front-page sections ──────────────
-(function () {
-  "use strict";
-  document.addEventListener("DOMContentLoaded", () => {
-    const targets = document.querySelectorAll(".reveal-child");
-    if (!targets.length) return;
-    if (!("IntersectionObserver" in window)) {
-      targets.forEach((el) => el.classList.add("is-visible"));
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
-    );
-    targets.forEach((el) => io.observe(el));
-  });
-})();
+     
