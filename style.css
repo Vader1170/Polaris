@@ -431,6 +431,71 @@ select:focus-visible {
 /* =========================================================
    PRINCIPLES
    ========================================================= */
+
+/* ============================================================
+   Enhanced roadmap cards – classy, with gold left border
+   ============================================================ */
+.roadmap-card {
+  background: linear-gradient(180deg, rgba(247, 245, 240, 0.025), rgba(247, 245, 240, 0.01));
+  border: 1px solid rgba(247, 245, 240, 0.08);
+  border-radius: 14px;
+  padding: 28px 30px;
+  position: relative;
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+.roadmap-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--gold-bright), transparent);
+  border-radius: 14px 0 0 14px;
+}
+.roadmap-card.full-width {
+  grid-column: 1 / -1;
+}
+.roadmap-card.ai-tip-card {
+  background: rgba(201, 169, 97, 0.05);
+  border-color: rgba(201, 169, 97, 0.2);
+}
+.roadmap-card.ai-tip-card::before {
+  background: var(--gold-bright);
+}
+.roadmap-card h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--paper);
+}
+.roadmap-card .card-content {
+  color: rgba(247, 245, 240, 0.85);
+  line-height: 1.6;
+}
+.roadmap-card .card-content ul {
+  padding-left: 20px;
+}
+.roadmap-card .card-content li {
+  margin-bottom: 6px;
+}
+.roadmap-card .collapse-toggle {
+  background: none;
+  border: none;
+  color: rgba(247, 245, 240, 0.4);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.roadmap-card .collapse-toggle:hover {
+  color: var(--gold-bright);
+}
+
 .principles {
   padding: 100px 0;
   background: var(--paper-dim);
