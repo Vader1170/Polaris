@@ -217,10 +217,40 @@ function updateAuthUI(user) {
   }
   initCursorTrail();
 
+  // ── Scroll reveal (fixes cards/tiles that never appear) ─────────────
+
+  function initScrollReveal() {
+    const children = $$(".reveal-child");
+    if (!children.length) return;
+
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      children.forEach(el => el.classList.add("is-visible"));
+      return;
+    }
+
+    if (!("IntersectionObserver" in window)) {
+      children.forEach(el => el.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+
+    children.forEach(el => observer.observe(el));
+  }
+
   // ── DOM helpers & navigation ──────────────────────────────────────
 
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+  initScrollReveal();
 
   const dashboardView = document.getElementById("dashboard-view");
   const backButtons = $$(".back-to-dashboard-btn");
@@ -528,8 +558,27 @@ function updateAuthUI(user) {
       form.hidden = true;
       complete.hidden = false;
       const profile = { submittedAt: new Date().toISOString(), answers: state.answers };
-      resultsOutput.textContent = JSON.stringify(profile, null, 2);
       window[`polaris${key.charAt(0).toUpperCase()+key.slice(1)}Profile`] = profile;
+
+      if (resultsOutput) {
+        const answeredCount = questions.filter(q => {
+          const v = state.answers[q.key];
+          return v && (Array.isArray(v) ? v.length > 0 : String(v).trim().length > 0);
+        }).length;
+        resultsOutput.innerHTML = `
+          <div class="profile-summary">
+            <div class="profile-summary-row">
+              <span class="profile-summary-check" aria-hidden="true">✓</span>
+              <span>${answeredCount} of ${questions.length} questions captured</span>
+            </div>
+            <div class="profile-summary-row">
+              <span class="profile-summary-check" aria-hidden="true">✓</span>
+              <span>Profile ready to formulate</span>
+            </div>
+          </div>
+        `;
+      }
+
       complete.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
@@ -1442,18 +1491,15 @@ function updateAuthUI(user) {
 
   // ── UI card helpers ──────────────────────────────────────────────────
 
-  function createGridCard(title, innerHTML, icon = "✦", collapsible = true) {
+  function buildCard(title, innerHTML, { fullWidth = false, collapsible = true } = {}) {
     const card = document.createElement("div");
-    card.className = "roadmap-card";
+    card.className = "roadmap-card" + (fullWidth ? " full-width" : "");
     card.innerHTML = `
-      <h3 style="cursor: ${collapsible ? 'pointer' : 'default'}; display: flex; justify-content: space-between; align-items: center; user-select: none; margin: 0 0 16px; border-bottom: 1px solid rgba(247, 245, 240, 0.08); padding-bottom: 10px;">
-        <span style="display: flex; align-items: center; gap: 10px;">
-          <span style="color: var(--gold); font-size: 1rem;">${icon}</span>
-          ${title}
-        </span>
-        ${collapsible ? '<button type="button" class="collapse-toggle">[ collapse ]</button>' : ''}
+      <h3>
+        <span class="roadmap-card-title">${title}</span>
+        ${collapsible ? '<button type="button" class="collapse-toggle" aria-expanded="true"><span class="collapse-toggle-icon" aria-hidden="true"></span></button>' : ''}
       </h3>
-      <div class="card-content" style="transition: all 0.3s ease;">
+      <div class="card-content">
         ${innerHTML}
       </div>
     `;
@@ -1461,43 +1507,23 @@ function updateAuthUI(user) {
       const h3 = card.querySelector("h3");
       const toggle = card.querySelector(".collapse-toggle");
       const content = card.querySelector(".card-content");
-      h3.addEventListener("click", () => {
-        const isCollapsed = content.style.display === "none";
-        content.style.display = isCollapsed ? "block" : "none";
-        toggle.textContent = isCollapsed ? "[ collapse ]" : "[ expand ]";
-        card.style.opacity = isCollapsed ? "1" : "0.85";
-      });
+      const collapse = () => {
+        const isCollapsed = content.hidden;
+        content.hidden = !isCollapsed;
+        card.classList.toggle("is-collapsed", !isCollapsed);
+        toggle.setAttribute("aria-expanded", String(isCollapsed));
+      };
+      h3.addEventListener("click", collapse);
     }
     return card;
   }
 
-  function createFullWidthCard(title, innerHTML, icon = "✦", collapsible = true) {
-    const card = document.createElement("div");
-    card.className = "roadmap-card full-width";
-    card.innerHTML = `
-      <h3 style="cursor: ${collapsible ? 'pointer' : 'default'}; display: flex; justify-content: space-between; align-items: center; user-select: none; margin: 0 0 16px; border-bottom: 1px solid rgba(247, 245, 240, 0.08); padding-bottom: 10px;">
-        <span style="display: flex; align-items: center; gap: 10px;">
-          <span style="color: var(--gold); font-size: 1rem;">${icon}</span>
-          ${title}
-        </span>
-        ${collapsible ? '<button type="button" class="collapse-toggle">[ collapse ]</button>' : ''}
-      </h3>
-      <div class="card-content" style="transition: all 0.3s ease;">
-        ${innerHTML}
-      </div>
-    `;
-    if (collapsible) {
-      const h3 = card.querySelector("h3");
-      const toggle = card.querySelector(".collapse-toggle");
-      const content = card.querySelector(".card-content");
-      h3.addEventListener("click", () => {
-        const isCollapsed = content.style.display === "none";
-        content.style.display = isCollapsed ? "block" : "none";
-        toggle.textContent = isCollapsed ? "[ collapse ]" : "[ expand ]";
-        card.style.opacity = isCollapsed ? "1" : "0.85";
-      });
-    }
-    return card;
+  function createGridCard(title, innerHTML) {
+    return buildCard(title, innerHTML, { fullWidth: false });
+  }
+
+  function createFullWidthCard(title, innerHTML, _icon, collapsible = true) {
+    return buildCard(title, innerHTML, { fullWidth: true, collapsible });
   }
 
   // ── Report renderers ──────────────────────────────────────────────────
