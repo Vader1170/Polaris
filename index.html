@@ -7,7 +7,6 @@
 <meta name="description" content="Druva provides a structured framework for students conducting independent projects, research, and creative inquiry, guiding them from an initial spark of curiosity to a methodical project design.">
 <link rel="icon" href="/favicon.ico">
 
-<!-- Google Fonts: Cormorant Garamond (display serif), Inter (body), Space Mono (labels/data) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Fraunces:ital,opsz,wght@1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -16,12 +15,8 @@
 </head>
 <body>
 
-<!-- Skip link for accessibility -->
 <a class="skip-link" href="#main">Skip to content</a>
 
-<!-- ============================= -->
-<!-- GLOBAL HEADER / NAV           -->
-<!-- ============================= -->
 <header class="site-header">
   <div class="container header-inner">
     <div class="header-left">
@@ -39,9 +34,6 @@
 
 <main id="main">
 
-  <!-- ============================= -->
-  <!-- HERO: WHAT IS DRUVA?          -->
-  <!-- ============================= -->
   <section class="hero" id="top">
     <div class="hero-sky" aria-hidden="true">
       <div class="star-field"></div>
@@ -58,17 +50,11 @@
       </p>
       <div class="hero-actions">
         <a href="/navigator" class="btn btn-primary">Launch Navigator</a>
-        <a href="/story" class="btn btn-ghost">Our Story</a>
+        <a href="/about" class="btn btn-ghost">Our Story</a>
       </div>
     </div>
   </section>
 
-  <!-- ============================= -->
-  <!-- SECTION 2: WHO IS IT FOR?     -->
-  <!-- ============================= -->
-  <!-- ============================= -->
-  <!-- SECTION 2: WHO IT'S FOR       -->
-  <!-- ============================= -->
   <section id="who-it-is-for" class="reveal">
     <div class="container audience-wrap">
       <p class="section-eyebrow" style="text-align: center;">Who this is for</p>
@@ -97,9 +83,41 @@
     </div>
   </section>
 
-  <!-- ============================= -->
-  <!-- SECTION 3: HOW IT WORKS       -->
-  <!-- ============================= -->
+  <section id="why-it-works" class="reveal" style="background: var(--navy-950); padding: 108px 0; border-bottom: 1px solid var(--border-dark);">
+    <div class="container" style="max-width: 900px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;">
+        <div class="reveal-child">
+          <p class="section-eyebrow">Why it actually works</p>
+          <h2 class="flow-title" style="color: var(--paper); text-align: left; margin: 0 0 20px;">Most tools give you information. This gives you a sequence.</h2>
+          <p style="color: rgba(247, 245, 240, 0.7); font-size: 1.05rem; line-height: 1.75; max-width: 46ch;">
+            Reading lists and generic advice are everywhere. What's missing is the order: what to do this week, what to skip until later, and what to ignore entirely. Druva calibrates that sequence to your actual starting point — your math background, your time, your goal — instead of handing you the same static checklist as everyone else.
+          </p>
+        </div>
+        <div class="reveal-child" style="background: var(--navy-800); border: 1px solid var(--border-dark); border-radius: var(--radius-lg); padding: 40px;">
+          <p style="font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-bright); margin: 0 0 20px;">What you get back</p>
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            <div style="display: flex; gap: 14px; align-items: baseline;">
+              <span style="font-family: var(--font-display); color: var(--gold); font-size: 1.1rem;">01</span>
+              <span style="color: var(--paper); font-size: 0.98rem;">A recommended field or question, shaped to your background</span>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: baseline;">
+              <span style="font-family: var(--font-display); color: var(--gold); font-size: 1.1rem;">02</span>
+              <span style="color: var(--paper); font-size: 0.98rem;">A reading list that's actually calibrated to your level</span>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: baseline;">
+              <span style="font-family: var(--font-display); color: var(--gold); font-size: 1.1rem;">03</span>
+              <span style="color: var(--paper); font-size: 0.98rem;">A week-by-week plan you can start today</span>
+            </div>
+            <div style="display: flex; gap: 14px; align-items: baseline;">
+              <span style="font-family: var(--font-display); color: var(--gold); font-size: 1.1rem;">04</span>
+              <span style="color: var(--paper); font-size: 0.98rem;">Three concrete next actions, no ambiguity</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="how-polaris-works" class="reveal">
     <div class="container">
       <div class="flow-header">
@@ -145,14 +163,12 @@
     </div>
   </section>
 
-  <!-- ============================= -->
-  <!-- SECTION 4: WHAT TO DO TODAY   -->
-  <!-- ============================= -->
   <section id="what-to-do-today" class="reveal">
     <div class="container">
       <div class="flow-header">
         <p class="section-eyebrow" style="text-align: center;">Start here</p>
         <h2 class="flow-title">Ready when you are.</h2>
+        <p class="flow-lead">No account needed to try it. No sales pitch. Answer a few questions, get your plan.</p>
       </div>
 
       <div class="tool-grid">
@@ -179,9 +195,6 @@
 
 </main>
 
-<!-- ============================= -->
-<!-- GLOBAL FOOTER                 -->
-<!-- ============================= -->
 <footer class="site-footer">
   <div class="container footer-inner">
     <div class="footer-brand">
@@ -196,4 +209,3 @@
 <script type="module" src="script.js"></script>
 </body>
 </html>
-
