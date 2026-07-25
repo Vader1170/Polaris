@@ -274,6 +274,10 @@ function updateAuthUI(user) {
       const max = Math.max(document.body.scrollHeight - window.innerHeight, 1);
       const progress = Math.min(window.scrollY / max, 1);
       nebula.style.setProperty("--scroll-progress", progress.toFixed(4));
+      // Sweep left and right across the viewport as the user scrolls,
+      // starting centered at the north star and widening its arc.
+      const sway = Math.sin(progress * Math.PI * 2) * (32 * progress);
+      nebula.style.setProperty("--nebula-sway", sway.toFixed(2));
       ticking = false;
     };
     updateProgress();
