@@ -245,12 +245,103 @@ function updateAuthUI(user) {
     children.forEach(el => observer.observe(el));
   }
 
+  // ── Floating header scroll state ─────────────────────────────────
+
+  function initHeaderScrollState() {
+    const header = document.querySelector(".site-header");
+    if (!header) return;
+    const onScroll = () => {
+      header.classList.toggle("is-scrolled", window.scrollY > 8);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  // ── Chevron shard: idle rotation + scroll-linked motion ───────────
+
+  function initChevronShard() {
+    const shard = document.querySelector(".chevron-shard");
+    if (!shard) return;
+
+    requestAnimationFrame(() => shard.classList.add("is-ready"));
+
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    let ticking = false;
+    const updateProgress = () => {
+      const max = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+      const progress = Math.min(window.scrollY / max, 1);
+      shard.style.setProperty("--scroll-progress", progress.toFixed(4));
+      ticking = false;
+    };
+    updateProgress();
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        requestAnimationFrame(updateProgress);
+        ticking = true;
+      }
+    }, { passive: true });
+    window.addEventListener("resize", updateProgress);
+  }
+
+  // ── Animated stat counters ─────────────────────────────────────────
+
+  function initStatCounters() {
+    const counters = $$(".stat-counter");
+    if (!counters.length) return;
+
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const animateCounter = (el) => {
+      const target = parseFloat(el.dataset.target || "0");
+      const suffix = el.dataset.suffix || "";
+      const duration = 1600;
+
+      if (reduceMotion) {
+        el.textContent = target + suffix;
+        return;
+      }
+
+      const start = performance.now();
+      const step = (now) => {
+        const elapsed = now - start;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const value = Math.round(target * eased);
+        el.textContent = value + suffix;
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      counters.forEach(animateCounter);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+
+    counters.forEach(el => observer.observe(el));
+  }
+
   // ── DOM helpers & navigation ──────────────────────────────────────
 
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
   initScrollReveal();
+  initHeaderScrollState();
+  initChevronShard();
+  initStatCounters();
 
   const dashboardView = document.getElementById("dashboard-view");
   const backButtons = $$(".back-to-dashboard-btn");
