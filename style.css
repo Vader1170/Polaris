@@ -1110,10 +1110,14 @@ select:focus-visible {
 .stats-band {
   background: var(--paper);
   color: var(--ink);
-  padding: 96px 0;
+  padding: 56px 0;
   border-bottom: 1px solid var(--border);
 }
-.stats-band .flow-title { color: var(--ink); }
+.stats-band .flow-title {
+  color: var(--ink);
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+  max-width: 42ch;
+}
 .stats-band .section-eyebrow { color: var(--gold); }
 .stats-grid {
   display: grid;
@@ -1121,37 +1125,37 @@ select:focus-visible {
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  margin-top: 56px;
+  margin-top: 32px;
 }
 .stat-cell {
   background: var(--paper);
-  padding: 40px 32px;
-  text-align: center;
+  padding: 22px 24px;
+  text-align: left;
 }
 .stat-number {
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 5vw, 3.4rem);
-  font-weight: 500;
+  font-size: 1.6rem;
+  font-weight: 600;
   color: var(--gold);
   line-height: 1;
-  margin-bottom: 14px;
   font-variant-numeric: tabular-nums;
+  margin-right: 6px;
 }
 .stat-caption {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--muted);
-  line-height: 1.6;
-  max-width: 30ch;
-  margin: 0 auto;
+  line-height: 1.5;
+  max-width: none;
+  margin: 6px 0 0;
 }
 .stat-source {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   color: var(--muted-light);
-  margin-top: 12px;
+  margin-top: 8px;
   letter-spacing: 0.02em;
 }
 @media (max-width: 800px) {
@@ -1185,17 +1189,26 @@ select:focus-visible {
   --scroll-progress: 0;
 }
 
+/* The nebula is born at the north star (top center of the hero) as a
+   small point, then as the page scrolls it drifts left-and-right in a
+   wide arc across the viewport while growing to full size, so it reads
+   as the star itself blooming outward and sweeping through the page. */
 .nebula {
   position: fixed;
-  top: 20%;
-  right: clamp(-160px, -6vw, -40px);
+  top: 8%;
+  left: 50%;
   width: clamp(360px, 34vw, 620px);
   height: clamp(360px, 34vw, 620px);
   pointer-events: none;
   z-index: 3;
   opacity: 0;
   transition: opacity 1.3s var(--ease) 0.3s;
-  transform: translateY(calc(var(--scroll-progress) * 340px)) rotate(calc(var(--scroll-progress) * 24deg));
+  transform:
+    translate(-50%, 0)
+    translateX(calc(var(--nebula-sway, 0) * 1vw))
+    translateY(calc(var(--scroll-progress) * 420px))
+    scale(calc(0.16 + var(--scroll-progress) * 0.84))
+    rotate(calc(var(--scroll-progress) * 30deg));
   will-change: transform;
 }
 .nebula.is-ready { opacity: 1; }
@@ -1264,7 +1277,7 @@ select:focus-visible {
 
 /* Sections stack around the nebula: navy sections sit behind it
    (glow shows through their edge), paper sections sit above it. */
-.hero, .section-navy, #why-it-works, #how-polaris-works, .founder-panel {
+.hero, .section-navy, #why-it-works, #how-polaris-works, .founder-panel, .about-hero {
   position: relative;
   z-index: 2;
 }
@@ -1607,9 +1620,15 @@ select:focus-visible {
 .about-section {
   padding: 96px 0;
   border-bottom: 1px solid var(--border);
+  background: var(--paper);
+  position: relative;
+  z-index: 4;
 }
 .about-section:last-of-type { border-bottom: none; }
 .about-section .container { max-width: 700px; }
+.about-section.is-alt {
+  background: var(--paper-dim);
+}
 
 .about-section-label {
   font-family: var(--font-mono);
