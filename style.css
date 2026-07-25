@@ -44,7 +44,7 @@
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--navy-950);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 16px;
@@ -1195,7 +1195,7 @@ select:focus-visible {
    as the star itself blooming outward and sweeping through the page. */
 .nebula {
   position: fixed;
-  top: 8%;
+  top: -2%;
   left: 50%;
   width: clamp(360px, 34vw, 620px);
   height: clamp(360px, 34vw, 620px);
