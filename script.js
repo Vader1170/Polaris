@@ -257,13 +257,13 @@ function updateAuthUI(user) {
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
-  // ── Chevron shard: idle rotation + scroll-linked motion ───────────
+  // ── Nebula: idle drift + scroll-linked motion ──────────────────────
 
-  function initChevronShard() {
-    const shard = document.querySelector(".chevron-shard");
-    if (!shard) return;
+  function initNebula() {
+    const nebula = document.querySelector(".nebula");
+    if (!nebula) return;
 
-    requestAnimationFrame(() => shard.classList.add("is-ready"));
+    requestAnimationFrame(() => nebula.classList.add("is-ready"));
 
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
@@ -273,7 +273,7 @@ function updateAuthUI(user) {
     const updateProgress = () => {
       const max = Math.max(document.body.scrollHeight - window.innerHeight, 1);
       const progress = Math.min(window.scrollY / max, 1);
-      shard.style.setProperty("--scroll-progress", progress.toFixed(4));
+      nebula.style.setProperty("--scroll-progress", progress.toFixed(4));
       ticking = false;
     };
     updateProgress();
@@ -340,7 +340,7 @@ function updateAuthUI(user) {
 
   initScrollReveal();
   initHeaderScrollState();
-  initChevronShard();
+  initNebula();
   initStatCounters();
 
   const dashboardView = document.getElementById("dashboard-view");
