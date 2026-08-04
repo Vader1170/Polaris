@@ -312,10 +312,14 @@ function updateAuthUI(user) {
       const step = (now) => {
         const elapsed = now - start;
         const t = Math.min(elapsed / duration, 1);
+        if (t >= 1) {
+          el.textContent = target + suffix;
+          return;
+        }
         const eased = 1 - Math.pow(1 - t, 3);
         const value = Math.round(target * eased);
         el.textContent = value + suffix;
-        if (t < 1) requestAnimationFrame(step);
+        requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
     };
