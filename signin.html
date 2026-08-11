@@ -148,6 +148,10 @@
 </div>
 
 <script type="module">
+  // Import and initialize Vercel Web Analytics
+  import { inject } from '@vercel/analytics';
+  inject();
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
