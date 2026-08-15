@@ -19,6 +19,7 @@ build: {
       navigator: path.resolve(__dirname, 'navigator.html'),
       signin: path.resolve(__dirname, 'signin.html'),
       about: path.resolve(__dirname, 'about.html'),
+      krisco: path.resolve(__dirname, 'krisco.html'),
     },
   },
 },
@@ -31,4 +32,3 @@ build: {
     },
   };
 });
-
