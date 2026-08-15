@@ -1,0 +1,467 @@
+/* =========================================================
+   KRISCO — Druva for Kids
+   A playful "browser" that searches a hand-picked pile of
+   cool, true things instead of the whole internet.
+   ========================================================= */
+
+.krisco-page {
+  --k-purple: #7C5CFC;
+  --k-purple-deep: #5B3DE0;
+  --k-blue: #2FC1F3;
+  --k-green: #2FD68C;
+  --k-yellow: #FFC93C;
+  --k-pink: #FF6FA5;
+  --k-orange: #FF8A3D;
+  --k-red: #FF5D5D;
+  --k-ink: #1A1C33;
+  --k-bg: #EFF1FF;
+  --k-card: #FFFFFF;
+  --k-r-lg: 28px;
+  --k-r-md: 18px;
+  --k-r-sm: 12px;
+  background: var(--k-bg);
+  min-height: 100vh;
+  font-family: var(--font-body);
+}
+
+.krisco-page .site-header { background: transparent; }
+
+/* ---------- playful nav pill link (used on main site too) ---------- */
+.nav-kids {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--k-pink, #FF6FA5), var(--k-purple, #7C5CFC));
+  color: #fff !important;
+  padding: 9px 18px 9px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  box-shadow: 0 4px 14px rgba(124, 92, 252, 0.35);
+}
+.nav-kids:hover {
+  transform: translateY(-1px) scale(1.03) rotate(-1deg);
+  box-shadow: 0 6px 18px rgba(255, 111, 165, 0.4);
+}
+.nav-kids .nav-kids-emoji {
+  display: inline-block;
+  animation: krisco-wiggle 2.2s ease-in-out infinite;
+}
+@keyframes krisco-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(12deg); }
+}
+
+/* ---------- background blobs ---------- */
+.krisco-blobs {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+.krisco-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+}
+.krisco-blob.b1 { width: 420px; height: 420px; background: var(--k-purple); top: -140px; left: -120px; }
+.krisco-blob.b2 { width: 380px; height: 380px; background: var(--k-blue); bottom: -160px; right: -100px; }
+.krisco-blob.b3 { width: 300px; height: 300px; background: var(--k-yellow); top: 40%; left: 60%; opacity: 0.25; }
+
+/* ---------- browser chrome shell ---------- */
+.krisco-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 36px auto 90px;
+  padding: 0 20px;
+}
+
+.krisco-window {
+  background: var(--k-card);
+  border-radius: var(--k-r-lg);
+  box-shadow: 0 20px 60px rgba(30, 20, 90, 0.18), 0 2px 8px rgba(30, 20, 90, 0.08);
+  overflow: hidden;
+  border: 1px solid rgba(26, 28, 51, 0.06);
+}
+
+.krisco-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #F4F4FB;
+  border-bottom: 1px solid rgba(26, 28, 51, 0.06);
+}
+.krisco-dots { display: flex; gap: 8px; flex-shrink: 0; }
+.krisco-dots span {
+  width: 12px; height: 12px; border-radius: 50%; display: block;
+}
+.krisco-dots span:nth-child(1) { background: #FF5F57; }
+.krisco-dots span:nth-child(2) { background: #FEBC2E; }
+.krisco-dots span:nth-child(3) { background: #28C840; }
+
+.krisco-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 8px 16px 8px 12px;
+  border-radius: 10px 10px 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--k-ink);
+  box-shadow: 0 -1px 0 #fff, 0 2px 6px rgba(0,0,0,0.04);
+}
+.krisco-tab-emoji { font-size: 0.95rem; }
+.krisco-newtab {
+  color: rgba(26, 28, 51, 0.3);
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.krisco-addressbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: #fff;
+}
+.krisco-nav-arrow {
+  color: rgba(26, 28, 51, 0.28);
+  font-size: 1rem;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.krisco-url {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F1F1F8;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: rgba(26, 28, 51, 0.55);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.krisco-url .lock { flex-shrink: 0; opacity: 0.5; }
+#krisco-url-text { overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- hero / search zone ---------- */
+.krisco-hero {
+  padding: 56px 32px 40px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(124, 92, 252, 0.08), transparent 60%);
+}
+.krisco-wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  margin: 0 0 6px;
+  background: linear-gradient(135deg, var(--k-purple), var(--k-pink) 55%, var(--k-orange));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.02em;
+}
+.krisco-wordmark .dot { color: var(--k-yellow); -webkit-text-fill-color: var(--k-yellow); }
+.krisco-tagline {
+  font-size: 1.05rem;
+  color: rgba(26, 28, 51, 0.6);
+  font-weight: 600;
+  margin: 0 0 34px;
+}
+
+.krisco-searchbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 620px;
+  margin: 0 auto;
+  background: #fff;
+  border: 3px solid var(--k-purple);
+  border-radius: 999px;
+  padding: 8px 8px 8px 24px;
+  box-shadow: 0 10px 30px rgba(124, 92, 252, 0.22);
+  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.krisco-searchbar:focus-within {
+  box-shadow: 0 14px 38px rgba(124, 92, 252, 0.34), 0 0 0 6px rgba(124, 92, 252, 0.14);
+  transform: translateY(-2px);
+}
+.krisco-searchbar .k-search-icon { font-size: 1.2rem; flex-shrink: 0; }
+#krisco-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: var(--k-ink);
+  min-width: 0;
+}
+#krisco-search-input::placeholder { color: rgba(26, 28, 51, 0.35); font-weight: 500; }
+.krisco-go-btn {
+  flex-shrink: 0;
+  border: none;
+  background: linear-gradient(135deg, var(--k-purple), var(--k-pink));
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 13px 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.krisco-go-btn:hover { transform: scale(1.05); }
+.krisco-go-btn:active { transform: scale(0.96); }
+
+/* chips */
+.krisco-chip-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: rgba(26, 28, 51, 0.4);
+  margin: 30px 0 14px;
+}
+.krisco-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.krisco-chip {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.krisco-chip:hover { transform: translateY(-3px) rotate(-1deg); }
+.krisco-chip:active { transform: translateY(0) scale(0.96); }
+.krisco-chip.c1 { background: var(--k-purple); }
+.krisco-chip.c2 { background: var(--k-blue); }
+.krisco-chip.c3 { background: var(--k-green); }
+.krisco-chip.c4 { background: var(--k-orange); }
+.krisco-chip.c5 { background: var(--k-pink); }
+.krisco-chip.c6 { background: #6C6FE0; }
+.krisco-chip.c7 { background: #21B3A4; }
+.krisco-chip.c8 { background: var(--k-red); }
+
+/* ---------- explorer / photo card ---------- */
+.krisco-explorer {
+  margin: 44px auto 0;
+  max-width: 560px;
+  background: linear-gradient(135deg, #FFF6E5, #FFE9F2);
+  border: 2px dashed rgba(124, 92, 252, 0.35);
+  border-radius: var(--k-r-lg);
+  padding: 22px 26px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+}
+.krisco-explorer-photo {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+}
+.krisco-explorer-photo img,
+.krisco-explorer-photo .k-photo-placeholder {
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 8px 20px rgba(124, 92, 252, 0.3);
+  transform: rotate(-4deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--k-purple), var(--k-blue));
+  font-size: 2rem;
+}
+.krisco-explorer-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -10px;
+  background: var(--k-yellow);
+  color: var(--k-ink);
+  font-size: 1rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+  transform: rotate(8deg);
+}
+.krisco-explorer-text h3 {
+  font-family: var(--font-display);
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  color: var(--k-ink);
+}
+.krisco-explorer-text p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: rgba(26, 28, 51, 0.6);
+  font-weight: 500;
+}
+.krisco-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--k-purple-deep);
+  background: rgba(124, 92, 252, 0.1);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* ---------- empty state ---------- */
+.krisco-empty {
+  text-align: center;
+  padding: 30px 32px 64px;
+  color: rgba(26, 28, 51, 0.45);
+  font-weight: 600;
+}
+.krisco-empty .k-empty-emoji { font-size: 2.2rem; display: block; margin-bottom: 10px; }
+
+/* ---------- results ---------- */
+.krisco-results {
+  padding: 8px 32px 56px;
+}
+.krisco-results[hidden] { display: none; }
+.krisco-results-meta {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: rgba(26, 28, 51, 0.4);
+  margin: 0 0 20px;
+  text-align: center;
+}
+.krisco-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.krisco-result-card {
+  background: var(--k-card);
+  border: 2px solid rgba(26, 28, 51, 0.06);
+  border-radius: var(--k-r-md);
+  padding: 20px 22px;
+  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.krisco-result-card:hover {
+  transform: translateY(-3px);
+  border-color: transparent;
+  box-shadow: 0 12px 28px rgba(124, 92, 252, 0.16);
+}
+.krisco-result-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--k-green);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.krisco-result-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 8px;
+  color: #3730A3;
+}
+.krisco-result-card p {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(26, 28, 51, 0.72);
+}
+.krisco-result-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.krisco-result-tags span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--k-purple-deep);
+}
+
+/* ---------- no results ---------- */
+.krisco-noresults {
+  text-align: center;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.krisco-noresults .k-emoji { font-size: 2.4rem; display: block; margin-bottom: 12px; }
+.krisco-noresults h3 { font-family: var(--font-display); margin: 0 0 8px; }
+.krisco-noresults p { color: rgba(26, 28, 51, 0.55); margin: 0 0 18px; font-weight: 500; }
+.krisco-noresults button {
+  border: none;
+  cursor: pointer;
+  background: var(--k-purple);
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 999px;
+}
+
+/* ---------- footer strip ---------- */
+.krisco-footer {
+  text-align: center;
+  padding: 30px 20px 60px;
+  position: relative;
+  z-index: 1;
+  color: rgba(26, 28, 51, 0.4);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.krisco-footer a { color: var(--k-purple-deep); font-weight: 700; }
+
+@media (max-width: 640px) {
+  .krisco-hero { padding: 44px 20px 28px; }
+  .krisco-explorer { flex-direction: column; text-align: center; margin: 36px 16px 0; }
+  .krisco-explorer-text { text-align: center; }
+  .krisco-results { padding: 8px 16px 48px; }
+  .krisco-titlebar { flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-kids .nav-kids-emoji { animation: none; }
+}

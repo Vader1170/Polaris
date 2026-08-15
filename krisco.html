@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KrisCo — Druva for Kids</title>
+<meta name="description" content="KrisCo is Druva for Kids, a search engine full of cool, true things about space, dinosaurs, the ocean, and more.">
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="krisco.css">
+</head>
+<body class="krisco-page">
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="krisco-blobs" aria-hidden="true">
+  <div class="krisco-blob b1"></div>
+  <div class="krisco-blob b2"></div>
+  <div class="krisco-blob b3"></div>
+</div>
+
+<header class="site-header" style="position: relative; padding-top: 20px;">
+  <div class="container header-inner">
+    <a href="/" class="logo" aria-label="Druva home" style="color: var(--k-ink, #1A1C33);">
+      <span class="logo-mark" aria-hidden="true" style="color: var(--k-purple, #7C5CFC);">✦</span>
+      <span class="logo-word">Druva</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary" style="background: rgba(255,255,255,0.7); border-color: rgba(26,28,51,0.08); backdrop-filter: blur(12px);">
+      <a href="/about" class="nav-link" style="color: rgba(26,28,51,0.65);">Our Why</a>
+      <a href="/navigator" class="nav-link" style="color: rgba(26,28,51,0.65);">Navigator</a>
+      <a href="/krisco" class="nav-link nav-kids" aria-current="page">
+        <span class="nav-kids-emoji" aria-hidden="true">🚀</span> Druva for Kids
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="krisco-shell">
+    <div class="krisco-window">
+
+      <!-- fake browser chrome -->
+      <div class="krisco-titlebar">
+        <div class="krisco-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="krisco-tab">
+          <span class="krisco-tab-emoji" aria-hidden="true">⭐</span>
+          <span>KrisCo</span>
+        </div>
+        <span class="krisco-newtab" aria-hidden="true">+</span>
+      </div>
+      <div class="krisco-addressbar">
+        <span class="krisco-nav-arrow" aria-hidden="true">←</span>
+        <span class="krisco-nav-arrow" aria-hidden="true">→</span>
+        <div class="krisco-url">
+          <span class="lock" aria-hidden="true">🔒</span>
+          <span id="krisco-url-text">krisco.com</span>
+        </div>
+      </div>
+
+      <!-- hero + search -->
+      <section class="krisco-hero">
+        <h1 class="krisco-wordmark">KrisCo<span class="dot">.</span></h1>
+        <p class="krisco-tagline">Druva for Kids. Search it and find something cool.</p>
+
+        <form id="krisco-search-form" role="search">
+          <div class="krisco-searchbar">
+            <span class="k-search-icon" aria-hidden="true">🔍</span>
+            <input
+              type="text"
+              id="krisco-search-input"
+              name="q"
+              placeholder="Search space, dinosaurs, oceans..."
+              autocomplete="off"
+              autofocus
+              aria-label="Search KrisCo"
+            >
+            <button type="submit" class="krisco-go-btn">Go!</button>
+          </div>
+        </form>
+
+        <p class="krisco-chip-label">Or just tap one</p>
+        <div class="krisco-chips" id="krisco-chips"></div>
+
+        <div class="krisco-explorer">
+          <div class="krisco-explorer-photo">
+            <!--
+              PHOTO SPOT: send the picture and it goes right here,
+              stylized to match this card (rounded, tilted, framed).
+              Swap the placeholder div below for:
+              <img src="explorer.jpg" alt="Chief Explorer">
+            -->
+            <div class="k-photo-placeholder" aria-hidden="true">🧑‍🚀</div>
+            <span class="krisco-explorer-badge" aria-hidden="true">🌟</span>
+          </div>
+          <div class="krisco-explorer-text">
+            <h3>Chief Explorer on duty</h3>
+            <p>Every fact on this page got the KrisCo seal of approval.</p>
+            <span class="krisco-rank">🏆 LVL 1 EXPLORER · 0 FACTS FOUND</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- empty state before first search -->
+      <div class="krisco-empty" id="krisco-empty">
+        <span class="k-empty-emoji" aria-hidden="true">🛸</span>
+        Type something above or tap a topic to start exploring.
+      </div>
+
+      <!-- results -->
+      <section class="krisco-results" id="krisco-results" hidden>
+        <p class="krisco-results-meta" id="krisco-results-meta"></p>
+        <div class="krisco-results-grid" id="krisco-results-grid"></div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<p class="krisco-footer">Built inside <a href="/">Druva</a>. New topics get added all the time.</p>
+
+<script src="krisco.js"></script>
+</body>
+</html>
