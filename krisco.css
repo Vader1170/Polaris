@@ -460,3 +460,64 @@
   .nav-kids .nav-kids-emoji { animation: none; }
   .krisco-stars { animation: none; opacity: 0.85; }
 }
+
+/* ---------- rocket launch effect ---------- */
+@keyframes krisco-shake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-7px, 5px) rotate(-1deg); }
+  20% { transform: translate(7px, -5px) rotate(1deg); }
+  30% { transform: translate(-9px, 4px) rotate(-1.4deg); }
+  40% { transform: translate(9px, -4px) rotate(1.4deg); }
+  50% { transform: translate(-7px, 6px) rotate(-1deg); }
+  60% { transform: translate(7px, -6px) rotate(1deg); }
+  70% { transform: translate(-5px, 3px) rotate(-0.6deg); }
+  80% { transform: translate(5px, -3px) rotate(0.6deg); }
+  90% { transform: translate(-2px, 1px) rotate(-0.3deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+body.krisco-is-launching {
+  animation: krisco-shake 0.68s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.krisco-rocket-fx {
+  position: fixed;
+  left: 50%;
+  bottom: 6%;
+  font-size: 2.6rem;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0) rotate(0deg);
+  filter: drop-shadow(0 0 18px rgba(255, 210, 92, 0.7));
+}
+.krisco-rocket-fx.krisco-launch {
+  animation: krisco-rocket-fly 0.9s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+}
+@keyframes krisco-rocket-fly {
+  0% { opacity: 0; transform: translate(-50%, 0) rotate(-6deg) scale(0.8); }
+  12% { opacity: 1; transform: translate(-50%, -6vh) rotate(-6deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -130vh) rotate(-10deg) scale(1.1); }
+}
+
+/* ---------- searching state ---------- */
+.krisco-searching {
+  text-align: center;
+  padding: 30px 20px;
+  color: rgba(244, 243, 255, 0.6);
+  font-weight: 600;
+}
+.krisco-searching-emoji {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+  animation: krisco-pulse 1s ease-in-out infinite;
+}
+@keyframes krisco-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.krisco-is-launching { animation: none; }
+  .krisco-rocket-fx.krisco-launch { animation: none; }
+  .krisco-searching-emoji { animation: none; }
+}
