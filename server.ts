@@ -511,6 +511,98 @@ createGenerateEndpoint(
   "career"
 );
 
+// ── KrisCo (Druva for Kids) search ──────────────────────────────
+// Free-text search that isn't covered by the built-in topic list
+// falls back to this endpoint. Not gated behind sign-in — the
+// /api/generate-* auth middleware above treats a missing token as
+// req.user = null and continues, it does not block the request.
+const kidsSearchSystemInstruction = `You are the fact engine behind KrisCo, a search page inside Druva made for kids roughly 9 to 12 years old. A kid has typed a search term. Your job is to return short, true, fun facts about that topic, written in simple, energetic language a 9-12 year old will enjoy and understand.
+
+Rules:
+1. Every fact must be true and reasonably well established. Do not invent statistics, dates, or claims you are not confident about.
+2. Return exactly 3 facts. Keep each fact to one or two short sentences.
+3. Keep everything strictly appropriate for children: no violence, gore, weapons, death, romance, sexual content, drugs, alcohol, self-harm, hateful content, or scary/disturbing material of any kind, even if the search term technically relates to a real topic (for example, a historical war or a natural disaster). If the topic cannot be covered in a fully kid-safe, non-scary way, set "found" to false instead of writing around it.
+4. If the search term is nonsense, a private individual's name, something inappropriate, something political, or anything you should not answer for a child, set "found" to false, leave "facts" as an empty array, and leave "topic" and "emoji" as short best-guess labels.
+5. Never break character or mention that you are an AI, a model, a language model, or an assistant.
+6. Respond with ONLY a single valid JSON object, no markdown fences, matching exactly:
+{
+  "topic": string,
+  "emoji": string,
+  "facts": string[],
+  "found": boolean
+}`;
+
+app.post("/api/generate-kids-search", async (req: any, res) => {
+  try {
+    const { query } = req.body;
+    if (!query || typeof query !== "string" || !query.trim()) {
+      return res.status(400).json({ error: "A search query is required." });
+    }
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      console.error("[/api/generate-kids-search] OPENROUTER_API_KEY missing.");
+      return res.status(500).json({ error: "OPENROUTER_API_KEY environment variable is missing on the server." });
+    }
+
+    const userPrompt = `Search term: "${query.trim().slice(0, 100)}"`;
+
+    const response = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        messages: [
+          { role: "system", content: kidsSearchSystemInstruction },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.5,
+        max_tokens: 600,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "");
+      console.error(`OpenRouter error (${response.status}):`, errorBody);
+      return res.status(502).json({ error: `OpenRouter API request failed with status ${response.status}.` });
+    }
+
+    const data = await response.json();
+    const messageContent = data?.choices?.[0]?.message?.content;
+    if (!messageContent || typeof messageContent !== "string") {
+      return res.status(502).json({ error: "OpenRouter returned empty or malformed response." });
+    }
+
+    let parsedData: any;
+    try {
+      parsedData = extractJson(messageContent);
+    } catch (parseErr) {
+      console.error("Failed to parse kids search JSON:", messageContent);
+      return res.status(502).json({ error: "Failed to parse response JSON." });
+    }
+
+    if (containsGarble(parsedData)) {
+      return res.json({ topic: query, emoji: "✨", facts: [], found: false });
+    }
+
+    incrementUsageStats("kidsSearch");
+    res.json({
+      topic: typeof parsedData.topic === "string" ? parsedData.topic : query,
+      emoji: typeof parsedData.emoji === "string" ? parsedData.emoji : "✨",
+      facts: Array.isArray(parsedData.facts)
+        ? parsedData.facts.slice(0, 4).filter((f: any) => typeof f === "string")
+        : [],
+      found: !!parsedData.found,
+    });
+  } catch (error: any) {
+    console.error("Kids search error:", error);
+    res.status(500).json({ error: error?.message || "Failed to generate search results." });
+  }
+});
+
 // ── Journal Summary ──────────────────────────────────────────────
 app.post("/api/summarize-journal", async (req, res) => {
   try {
