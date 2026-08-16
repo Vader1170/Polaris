@@ -1,8 +1,9 @@
 // ============================================================
 // KRISCO — Druva for Kids
-// A tiny, self-contained "search engine" over a hand-picked
-// pile of true, cool facts. No external calls, no AI, nothing
-// fancy under the hood, just a lookup and some fun styling.
+// Built-in topics answer instantly from a hand-picked list.
+// Anything else gets sent to /api/generate-kids-search, which
+// uses the same OpenRouter setup as the rest of Druva, with a
+// strict kid-safe system prompt, to fetch a fresh, true answer.
 // ============================================================
 
 const TOPICS = [
@@ -128,15 +129,21 @@ const TOPICS = [
   }
 ];
 
+const LAUNCH_MS = 680;
+const AI_SEARCH_ENDPOINT = "/api/generate-kids-search";
+
 function init() {
   const chipsWrap = document.getElementById("krisco-chips");
   const form = document.getElementById("krisco-search-form");
   const input = document.getElementById("krisco-search-input");
+  const goBtn = form ? form.querySelector(".krisco-go-btn") : null;
   const emptyState = document.getElementById("krisco-empty");
   const resultsSection = document.getElementById("krisco-results");
   const resultsGrid = document.getElementById("krisco-results-grid");
   const resultsMeta = document.getElementById("krisco-results-meta");
   const rankLine = document.querySelector(".krisco-rank");
+  const rocketFx = document.getElementById("krisco-rocket-fx");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if (!form || !input || !chipsWrap || !resultsSection || !resultsGrid) {
     console.error("KrisCo: expected page elements were not found.");
@@ -144,6 +151,7 @@ function init() {
   }
 
   let factsFound = 0;
+  let searchToken = 0; // guards against a stale AI response landing after a newer search
 
   // build topic chips
   TOPICS.forEach((topic) => {
@@ -158,6 +166,16 @@ function init() {
     });
     chipsWrap.appendChild(btn);
   });
+
+  function slugify(str) {
+    return (
+      str
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "") || "search"
+    );
+  }
 
   function matchTopics(query) {
     const q = query.trim().toLowerCase();
@@ -174,37 +192,122 @@ function init() {
     return div.innerHTML;
   }
 
-  function renderResults(query) {
-    const matches = matchTopics(query);
-    resultsGrid.innerHTML = "";
+  // ---- rocket launch effect ----
+  function playLaunchEffect() {
+    if (reduceMotion) return;
+    document.body.classList.remove("krisco-is-launching");
+    // force reflow so the animation restarts on back-to-back searches
+    void document.body.offsetWidth;
+    document.body.classList.add("krisco-is-launching");
+    if (rocketFx) {
+      rocketFx.classList.remove("krisco-launch");
+      void rocketFx.offsetWidth;
+      rocketFx.classList.add("krisco-launch");
+    }
+    window.setTimeout(() => {
+      document.body.classList.remove("krisco-is-launching");
+    }, LAUNCH_MS + 50);
+  }
+
+  function wait(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+
+  // ---- fetch a fresh answer for anything not in the built-in list ----
+  async function fetchAiTopic(query) {
+    const resp = await fetch(AI_SEARCH_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: query.trim() }),
+    });
+    if (!resp.ok) {
+      let msg = `Server error: ${resp.status}`;
+      try {
+        const d = await resp.json();
+        if (d && d.error) msg = d.error;
+      } catch (_) {}
+      throw new Error(msg);
+    }
+    const data = await resp.json();
+    if (!data || !data.found || !Array.isArray(data.facts) || data.facts.length === 0) {
+      return null;
+    }
+    return {
+      slug: slugify(data.topic || query),
+      label: data.topic || query,
+      emoji: data.emoji || "✨",
+      facts: data.facts.filter((f) => typeof f === "string").slice(0, 4),
+      isFresh: true,
+    };
+  }
+
+  async function resolveSearch(query) {
+    const staticMatches = matchTopics(query);
+    if (staticMatches.length > 0) {
+      return { status: "ok", topics: staticMatches };
+    }
+    try {
+      const aiTopic = await fetchAiTopic(query);
+      if (!aiTopic) return { status: "empty" };
+      return { status: "ok", topics: [aiTopic] };
+    } catch (err) {
+      console.error("KrisCo AI search failed:", err);
+      return { status: "error" };
+    }
+  }
+
+  function showSearching(query) {
     if (emptyState) emptyState.hidden = true;
     resultsSection.hidden = false;
+    if (resultsMeta) resultsMeta.textContent = "";
+    resultsGrid.innerHTML = `
+      <div class="krisco-searching">
+        <span class="krisco-searching-emoji" aria-hidden="true">🛰️</span>
+        <p>Scanning the galaxy for "${escapeHtml(query)}"...</p>
+      </div>
+    `;
+  }
 
-    if (matches.length === 0) {
-      if (resultsMeta) resultsMeta.textContent = "";
-      const wrap = document.createElement("div");
-      wrap.className = "krisco-noresults";
+  function renderNoResults(reason) {
+    resultsGrid.innerHTML = "";
+    if (resultsMeta) resultsMeta.textContent = "";
+    const wrap = document.createElement("div");
+    wrap.className = "krisco-noresults";
+    if (reason === "error") {
+      wrap.innerHTML = `
+        <span class="k-emoji" aria-hidden="true">📡</span>
+        <h3>Lost the signal</h3>
+        <p>KrisCo couldn't reach mission control just now. Give it another shot.</p>
+        <button type="button" id="krisco-retry-btn">Try again</button>
+      `;
+    } else {
       wrap.innerHTML = `
         <span class="k-emoji" aria-hidden="true">🧭</span>
         <h3>Nothing here yet</h3>
-        <p>KrisCo doesn't know that one yet. Try tapping a topic below instead.</p>
-        <button type="button" id="krisco-clear-btn">Show me topics</button>
+        <p>KrisCo couldn't find a kid-friendly answer for that. Try another search or tap a topic below.</p>
+        <button type="button" id="krisco-retry-btn">Show me topics</button>
       `;
-      resultsGrid.appendChild(wrap);
-      const clearBtn = document.getElementById("krisco-clear-btn");
-      if (clearBtn) {
-        clearBtn.addEventListener("click", () => {
+    }
+    resultsGrid.appendChild(wrap);
+    const retryBtn = document.getElementById("krisco-retry-btn");
+    if (retryBtn) {
+      retryBtn.addEventListener("click", () => {
+        if (reason === "error") {
+          runSearch(input.value);
+        } else {
           input.value = "";
           resultsSection.hidden = true;
           if (emptyState) emptyState.hidden = false;
           input.focus();
-        });
-      }
-      return;
+        }
+      });
     }
+  }
 
+  function renderResults(topics) {
+    resultsGrid.innerHTML = "";
     let cardCount = 0;
-    matches.forEach((topic) => {
+    topics.forEach((topic) => {
       topic.facts.forEach((fact) => {
         cardCount++;
         const card = document.createElement("article");
@@ -216,8 +319,8 @@ function init() {
           <h3>Did you know?</h3>
           <p>${escapeHtml(fact)}</p>
           <div class="krisco-result-tags">
-            <span>${topic.label}</span>
-            <span>Kid-checked</span>
+            <span>${escapeHtml(topic.label)}</span>
+            <span>${topic.isFresh ? "Freshly found ✨" : "Kid-checked"}</span>
           </div>
         `;
         resultsGrid.appendChild(card);
@@ -234,9 +337,38 @@ function init() {
     }
   }
 
-  function runSearch(query) {
+  async function runSearch(query) {
     if (!query || !query.trim()) return;
-    renderResults(query);
+    const myToken = ++searchToken;
+
+    playLaunchEffect();
+    if (goBtn) goBtn.disabled = true;
+
+    if (emptyState) emptyState.hidden = true;
+    resultsSection.hidden = false;
+
+    // let the shake play for a beat before results slam in; if the
+    // search itself takes longer, a searching state fills the gap
+    const searchPromise = resolveSearch(query);
+    await wait(LAUNCH_MS * 0.7);
+    if (myToken !== searchToken) return;
+
+    let settled = false;
+    searchPromise.then(() => { settled = true; });
+    if (!settled) showSearching(query);
+
+    const result = await searchPromise;
+    if (myToken !== searchToken) return;
+
+    if (goBtn) goBtn.disabled = false;
+
+    if (result.status === "ok") {
+      renderResults(result.topics);
+    } else if (result.status === "error") {
+      renderNoResults("error");
+    } else {
+      renderNoResults("empty");
+    }
   }
 
   form.addEventListener("submit", (e) => {
