@@ -128,110 +128,125 @@ const TOPICS = [
   }
 ];
 
-const chipsWrap = document.getElementById("krisco-chips");
-const form = document.getElementById("krisco-search-form");
-const input = document.getElementById("krisco-search-input");
-const emptyState = document.getElementById("krisco-empty");
-const resultsSection = document.getElementById("krisco-results");
-const resultsGrid = document.getElementById("krisco-results-grid");
-const resultsMeta = document.getElementById("krisco-results-meta");
-const urlText = document.getElementById("krisco-url-text");
-const rankLine = document.querySelector(".krisco-rank");
+function init() {
+  const chipsWrap = document.getElementById("krisco-chips");
+  const form = document.getElementById("krisco-search-form");
+  const input = document.getElementById("krisco-search-input");
+  const emptyState = document.getElementById("krisco-empty");
+  const resultsSection = document.getElementById("krisco-results");
+  const resultsGrid = document.getElementById("krisco-results-grid");
+  const resultsMeta = document.getElementById("krisco-results-meta");
+  const rankLine = document.querySelector(".krisco-rank");
 
-let factsFound = 0;
-
-// build topic chips
-TOPICS.forEach((topic) => {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = `krisco-chip ${topic.chipClass}`;
-  btn.textContent = `${topic.emoji} ${topic.label}`;
-  btn.addEventListener("click", () => {
-    input.value = topic.label;
-    runSearch(topic.label);
-    input.focus();
-  });
-  chipsWrap.appendChild(btn);
-});
-
-function matchTopics(query) {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  return TOPICS.filter((topic) => {
-    if (topic.label.toLowerCase().includes(q)) return true;
-    return topic.keywords.some((k) => k.includes(q) || q.includes(k));
-  });
-}
-
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-function renderResults(query) {
-  const matches = matchTopics(query);
-  resultsGrid.innerHTML = "";
-  emptyState.hidden = true;
-  resultsSection.hidden = false;
-
-  if (matches.length === 0) {
-    resultsMeta.textContent = "";
-    const wrap = document.createElement("div");
-    wrap.className = "krisco-noresults";
-    wrap.innerHTML = `
-      <span class="k-emoji" aria-hidden="true">🧭</span>
-      <h3>Nothing here yet</h3>
-      <p>KrisCo doesn't know that one yet. Try tapping a topic below instead.</p>
-      <button type="button" id="krisco-clear-btn">Show me topics</button>
-    `;
-    resultsGrid.appendChild(wrap);
-    document.getElementById("krisco-clear-btn").addEventListener("click", () => {
-      input.value = "";
-      resultsSection.hidden = true;
-      emptyState.hidden = false;
-      urlText.textContent = "krisco.com";
-      input.focus();
-    });
+  if (!form || !input || !chipsWrap || !resultsSection || !resultsGrid) {
+    console.error("KrisCo: expected page elements were not found.");
     return;
   }
 
-  let cardCount = 0;
-  matches.forEach((topic) => {
-    topic.facts.forEach((fact) => {
-      cardCount++;
-      const card = document.createElement("article");
-      card.className = "krisco-result-card";
-      card.innerHTML = `
-        <p class="krisco-result-breadcrumb">
-          <span aria-hidden="true">${topic.emoji}</span> krisco.com › ${topic.slug}
-        </p>
-        <h3>Did you know?</h3>
-        <p>${escapeHtml(fact)}</p>
-        <div class="krisco-result-tags">
-          <span>${topic.label}</span>
-          <span>Kid-checked</span>
-        </div>
-      `;
-      resultsGrid.appendChild(card);
+  let factsFound = 0;
+
+  // build topic chips
+  TOPICS.forEach((topic) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `krisco-chip ${topic.chipClass}`;
+    btn.textContent = `${topic.emoji} ${topic.label}`;
+    btn.addEventListener("click", () => {
+      input.value = topic.label;
+      runSearch(topic.label);
+      input.focus();
     });
+    chipsWrap.appendChild(btn);
   });
 
-  resultsMeta.textContent = `${cardCount} cool thing${cardCount === 1 ? "" : "s"} found`;
-  factsFound += cardCount;
-  if (rankLine) {
-    const level = factsFound >= 20 ? 3 : factsFound >= 8 ? 2 : 1;
-    rankLine.textContent = `🏆 LVL ${level} EXPLORER · ${factsFound} FACTS FOUND`;
+  function matchTopics(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return TOPICS.filter((topic) => {
+      if (topic.label.toLowerCase().includes(q)) return true;
+      return topic.keywords.some((k) => k.includes(q) || q.includes(k));
+    });
   }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderResults(query) {
+    const matches = matchTopics(query);
+    resultsGrid.innerHTML = "";
+    if (emptyState) emptyState.hidden = true;
+    resultsSection.hidden = false;
+
+    if (matches.length === 0) {
+      if (resultsMeta) resultsMeta.textContent = "";
+      const wrap = document.createElement("div");
+      wrap.className = "krisco-noresults";
+      wrap.innerHTML = `
+        <span class="k-emoji" aria-hidden="true">🧭</span>
+        <h3>Nothing here yet</h3>
+        <p>KrisCo doesn't know that one yet. Try tapping a topic below instead.</p>
+        <button type="button" id="krisco-clear-btn">Show me topics</button>
+      `;
+      resultsGrid.appendChild(wrap);
+      const clearBtn = document.getElementById("krisco-clear-btn");
+      if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+          input.value = "";
+          resultsSection.hidden = true;
+          if (emptyState) emptyState.hidden = false;
+          input.focus();
+        });
+      }
+      return;
+    }
+
+    let cardCount = 0;
+    matches.forEach((topic) => {
+      topic.facts.forEach((fact) => {
+        cardCount++;
+        const card = document.createElement("article");
+        card.className = "krisco-result-card";
+        card.innerHTML = `
+          <p class="krisco-result-breadcrumb">
+            <span aria-hidden="true">${topic.emoji}</span> krisco.com › ${topic.slug}
+          </p>
+          <h3>Did you know?</h3>
+          <p>${escapeHtml(fact)}</p>
+          <div class="krisco-result-tags">
+            <span>${topic.label}</span>
+            <span>Kid-checked</span>
+          </div>
+        `;
+        resultsGrid.appendChild(card);
+      });
+    });
+
+    if (resultsMeta) {
+      resultsMeta.textContent = `${cardCount} cool thing${cardCount === 1 ? "" : "s"} found`;
+    }
+    factsFound += cardCount;
+    if (rankLine) {
+      const level = factsFound >= 20 ? 3 : factsFound >= 8 ? 2 : 1;
+      rankLine.textContent = `🏆 LVL ${level} EXPLORER · ${factsFound} FACTS FOUND`;
+    }
+  }
+
+  function runSearch(query) {
+    if (!query || !query.trim()) return;
+    renderResults(query);
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runSearch(input.value);
+  });
 }
 
-function runSearch(query) {
-  if (!query || !query.trim()) return;
-  urlText.textContent = `krisco.com/search?q=${encodeURIComponent(query.trim().toLowerCase())}`;
-  renderResults(query);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
 }
-
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  runSearch(input.value);
-});
